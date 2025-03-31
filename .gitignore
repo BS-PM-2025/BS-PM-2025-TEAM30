@@ -1,17 +1,48 @@
-.idea/workspace.xml
+# === PyCharm / IDE settings ===
 .idea/
-# Python
+.idea/workspace.xml
+*.iml
+
+# === Python ===
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.env
+.env
+.env.*
 
-# Virtual env
+# === Virtual Environment ===
 venv/
+ENV/
+env/
+.venv/
 
-# Django
+# === Django ===
 *.sqlite3
+*.log
+local_settings.py
 
-# React
+# Ignore Django migration folders except __init__.py
+**/migrations/
+!**/migrations/__init__.py
+
+# Static and media
+static/
+staticfiles/
+media/
+
+# === Node / React ===
 node_modules/
 build/
+dist/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
 
+# === OS generated files ===
+.DS_Store
+Thumbs.db
 
+# === Git ===
+.gitignore
