@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-tg59p!-9pk24ee3lw1sj8-byf7nm$+&4o)=am4_!iqb5)zv7=k
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -37,6 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'backend.user',
+    'rest_framework',
+    'corsheaders',
+
 ]
 
 MIDDLEWARE = [
@@ -47,6 +52,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # ⬅ להוסיף ראשון
+    'django.middleware.common.CommonMiddleware',  # ⬅ אפשר להוסיף אחרי זה
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -68,6 +75,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+AUTH_USER_MODEL = 'user.User'  # פורמט: 'שם_אפליקציה.שם_מודל'
 
 
 # Database
@@ -76,7 +84,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres@team30.postgres.database.azure.com',
+        'NAME': 'postgres',
         'USER': 'team30',
         'PASSWORD': 'insasce30!',
         'HOST': 'team30.postgres.database.azure.com',
