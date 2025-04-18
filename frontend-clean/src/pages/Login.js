@@ -45,6 +45,9 @@ const Login = () => {
         <button onClick={handleSubmit}>התחבר</button>
         {error && <p className="error-msg">{error}</p>}
         {success && <p className="success-msg">{success}</p>}
+        <p>
+        <a href="/forgot-password">?שכחת סיסמה</a>
+        </p>
         <span className="register-link">לא רשום עדיין? <a href="/register">הירשם כאן</a> 📝</span>
       </div>
     </div>
