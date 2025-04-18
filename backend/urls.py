@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from backend.Report.views import ReportIssueView
 
 urlpatterns = [
     path('api/', include('backend.user.urls')),
     path('admin/', admin.site.urls),
+    path('report/', ReportIssueView.as_view(), name='report'),
 ]
