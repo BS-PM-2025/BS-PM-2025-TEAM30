@@ -1,5 +1,6 @@
+// ✅ MapComponent.js – כולל שימוש ב-icon_color והצגת כרטיסים מתחת למפה
 import React, { useEffect, useState } from 'react';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, Circle } from '@react-google-maps/api';
 import './MapComponent.css';
 
 const containerStyle = {
@@ -16,6 +17,12 @@ const getPlaceTypeByHour = () => {
   return "restaurant";
 };
 
+const getPlaceLabel = (type) => {
+  if (type === "cafe") return "בתי קפה";
+  if (type === "meal_takeaway") return "אוכל מהיר";
+  return "מסעדות רגילות";
+};
+
 const MapComponent = () => {
   const [location, setLocation] = useState(null);
   const [places, setPlaces] = useState([]);
@@ -23,6 +30,7 @@ const MapComponent = () => {
   const [radius, setRadius] = useState(1000);
   const [filterByHour, setFilterByHour] = useState(true);
   const [filterVisited, setFilterVisited] = useState(false);
+  const [minRating, setMinRating] = useState(0);
 
   const isLoggedIn = localStorage.getItem("loggedIn") === "true";
   const userEmail = localStorage.getItem("userEmail");
@@ -35,6 +43,7 @@ const MapComponent = () => {
       type,
       radius,
       search,
+      min_rating: minRating
     });
 
     if (filterVisited && isLoggedIn && userEmail) {
@@ -43,7 +52,8 @@ const MapComponent = () => {
 
     fetch(`http://localhost:8000/api/nearby/?${query.toString()}`)
       .then(res => res.json())
-      .then(data => setPlaces(data));
+      .then(data => setPlaces(data))
+      .catch(err => console.error("שגיאה ב-fetch:", err));
   };
 
   useEffect(() => {
@@ -53,15 +63,17 @@ const MapComponent = () => {
         setLocation({ lat: latitude, lng: longitude });
         fetchPlaces(latitude, longitude);
       },
-      (err) => console.error("Error getting location:", err)
+      (err) => console.error("שגיאה באיתור מיקום:", err)
     );
-  }, [filterByHour, filterVisited, radius]);
+  }, [filterByHour, filterVisited, radius, minRating]);
 
   useEffect(() => {
     if (location) {
       fetchPlaces(location.lat, location.lng);
     }
   }, [search]);
+
+  const currentTypeLabel = getPlaceLabel(filterByHour ? getPlaceTypeByHour() : 'restaurant');
 
   return (
     <div className="map-page">
@@ -76,6 +88,8 @@ const MapComponent = () => {
 
       <div className="content-wrapper">
         <div className="sidebar">
+          <p>מציג כעת: <strong>{currentTypeLabel}</strong></p>
+
           <input
             type="text"
             placeholder="חפש מסעדה..."
@@ -85,7 +99,28 @@ const MapComponent = () => {
 
           <div className="filters">
             <label><input type="checkbox" checked={filterByHour} onChange={() => setFilterByHour(!filterByHour)} /> לפי שעה</label>
-            {isLoggedIn && <label><input type="checkbox" checked={filterVisited} onChange={() => setFilterVisited(!filterVisited)} /> רק שביקרתי</label>}
+            <label>
+              <input
+                type="checkbox"
+                checked={filterVisited}
+                onChange={() => {
+                  if (!isLoggedIn) {
+                    alert("כדי להציג מסעדות שביקרת בהן, עליך להתחבר.");
+                    return;
+                  }
+                  setFilterVisited(!filterVisited);
+                }}
+              /> רק שביקרתי
+            </label>
+            <label>
+              דירוג מינימלי:
+              <select value={minRating} onChange={(e) => setMinRating(Number(e.target.value))}>
+                <option value={0}>ללא סינון</option>
+                <option value={4}>⭐ 4+</option>
+                <option value={4.5}>⭐ 4.5+</option>
+                <option value={5}>⭐ 5 בלבד</option>
+              </select>
+            </label>
             <label>
               מרחק (מטרים):
               <select value={radius} onChange={(e) => setRadius(Number(e.target.value))}>
@@ -96,16 +131,6 @@ const MapComponent = () => {
               </select>
             </label>
           </div>
-
-          <div className="places-list">
-            {places.map((place, index) => (
-              <div key={index} className="place-item">
-                <strong>{place.name}</strong><br />
-                ⭐ {place.rating || 'N/A'}<br />
-                📏 {Math.round(place.distance_in_meters)} מטר
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="map-wrapper">
@@ -115,12 +140,47 @@ const MapComponent = () => {
               center={location || { lat: 32.08, lng: 34.78 }}
               zoom={15}
             >
-              {location && <Marker position={location} label="אתה כאן" />}
+              {location && (
+                <>
+                  <Marker position={location} label="אתה כאן" />
+                  <Circle
+                    key={`radius-${radius}`}
+                    center={location}
+                    radius={radius}
+                    options={{
+                      fillColor: '#00bcd4',
+                      fillOpacity: 0.1,
+                      strokeColor: '#00838f',
+                      strokeWeight: 2
+                    }}
+                  />
+                </>
+              )}
               {places.map((place, index) => (
-                <Marker key={index} position={{ lat: place.lat, lng: place.lng }} title={place.name} />
+                <Marker
+                  key={index}
+                  position={{ lat: place.lat, lng: place.lng }}
+                  title={place.name}
+                  icon={{
+                    url: `http://maps.google.com/mapfiles/ms/icons/${place.icon_color}-dot.png`
+                  }}
+                />
               ))}
             </GoogleMap>
           </LoadScript>
+        </div>
+      </div>
+
+      <div className="results-section">
+        <h3>תוצאות:</h3>
+        <div className="results-grid">
+          {places.map((place, index) => (
+            <div key={index} className="place-card">
+              <h4>{place.name}</h4>
+              <p>⭐ {place.rating || 'N/A'}</p>
+              <p>📏 {Math.round(place.distance_in_meters)} מטר</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

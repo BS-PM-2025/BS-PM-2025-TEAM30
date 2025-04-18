@@ -1,10 +1,10 @@
-# ✅ views.py – שליפת מסעדות עם חישוב מרחק וסינון
+# ✅ views.py – תומך גם ב-min_rating + החזרת צבע אייקון לפי דירוג וביקור
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from math import radians, cos, sin, sqrt, atan2
 import requests
-from .user.models import VisitedRestaurant
+from .restaurants.models import VisitedRestaurant
 
 # חישוב מרחק בין נקודות (מטרים)
 def calculate_distance(lat1, lng1, lat2, lng2):
@@ -23,6 +23,7 @@ def nearby_restaurants(request):
     place_type = request.GET.get('type', 'restaurant')
     search = request.GET.get('search', '').lower()
     email = request.GET.get('email')
+    min_rating = float(request.GET.get('min_rating', 0))
 
     url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     params = {
@@ -43,20 +44,36 @@ def nearby_restaurants(request):
         name = place['name']
         lat2 = place['geometry']['location']['lat']
         lng2 = place['geometry']['location']['lng']
+        rating = place.get('rating')
         dist = calculate_distance(lat, lng, lat2, lng2)
 
-        if dist <= radius:
-            visited = False
-            if email:
-                visited = VisitedRestaurant.objects.filter(user_email=email, restaurant_name__icontains=name).exists()
+        if dist > radius:
+            continue
 
-            results.append({
-                "name": name,
-                "lat": lat2,
-                "lng": lng2,
-                "rating": place.get('rating', None),
-                "distance_in_meters": dist,
-                "visited": visited
-            })
+        if rating is None or float(rating) < min_rating:
+            continue
+
+        visited = False
+        if email:
+            visited = VisitedRestaurant.objects.filter(user_email=email, restaurant_name__icontains=name).exists()
+
+        highlight = False
+        icon_color = "red"
+        if rating is not None and float(rating) >= 4.5:
+            highlight = True
+            icon_color = "green"
+        if visited:
+            icon_color = "blue"
+
+        results.append({
+            "name": name,
+            "lat": lat2,
+            "lng": lng2,
+            "rating": rating,
+            "distance_in_meters": dist,
+            "visited": visited,
+            "highlight": highlight,
+            "icon_color": icon_color
+        })
 
     return JsonResponse(results, safe=False)

@@ -10,13 +10,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        <Route path="/restaurants" element={
-          <div>
-            <h2>מסעדות לפי השעה</h2>
-            <MapComponent />
-          </div>
-        } />
+        <Route path="/restaurants" element={<MapComponent />} />
       </Routes>
     </Router>
   );
