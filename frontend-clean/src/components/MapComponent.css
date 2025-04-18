@@ -1,19 +1,22 @@
+.map-page {
+  font-family: 'Segoe UI', sans-serif;
+}
+
 .main-header {
   background-color: #b3e5fc;
   height: 100px;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 20px;
   position: relative;
   box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
 .site-title {
   font-size: 42px;
   font-weight: bold;
   color: #0d47a1;
-  font-family: 'Segoe UI', sans-serif;
 }
 
 .login-btn, .profile-btn {
@@ -29,23 +32,62 @@
   font-size: 16px;
 }
 
-.search-container {
-  text-align: center;
-  margin: 20px 0;
+.content-wrapper {
+  display: flex;
+  gap: 20px;
+  padding: 0 30px 50px 30px;
 }
 
-.search-container input {
-  padding: 12px;
-  width: 50%;
-  max-width: 600px;
-  border: 1px solid #aaa;
-  border-radius: 30px;
-  font-size: 18px;
-  text-align: center;
+.sidebar {
+  width: 300px;
+  background-color: #f1faff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
+  height: 500px;
+  overflow-y: auto;
+}
+
+.sidebar input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.filters label {
+  display: block;
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.filters select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+}
+
+.places-list {
+  margin-top: 20px;
+}
+
+.place-item {
+  background: #fff;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .map-wrapper {
+  flex: 1;
   display: flex;
   justify-content: center;
-  margin-bottom: 60px;
+  align-items: center;
 }

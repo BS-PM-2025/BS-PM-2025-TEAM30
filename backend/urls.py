@@ -16,14 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from backend.user.views import ForgotPasswordView  # ✅ שלב 1: הייבוא שנוסף כאן
-
-
+from .views import nearby_restaurants
 
 urlpatterns = [
     path('api/', include('backend.user.urls')),
     path('admin/', admin.site.urls),
-    path('api/forgot-password/', ForgotPasswordView.as_view()),
-
-
+    path('api/nearby/', nearby_restaurants),
 ]
