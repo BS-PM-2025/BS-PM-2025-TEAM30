@@ -30,6 +30,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
+REACT_APP_GOOGLE_MAPS_API_KEY='AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8'
 
 INSTALLED_APPS = [
     'django.contrib.admin',

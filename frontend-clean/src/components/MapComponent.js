@@ -1,187 +1,184 @@
-// ✅ MapComponent.js – כולל שימוש ב-icon_color והצגת כרטיסים מתחת למפה
+// 📁 MapComponent.js - כולל שיפור הצגת מיקום נוכחי, טבעת לפי רדיוס דינמי, fallback לפי עיר
 import React, { useEffect, useState } from 'react';
-import { GoogleMap, LoadScript, Marker, Circle } from '@react-google-maps/api';
 import './MapComponent.css';
+import { GoogleMap, useLoadScript, Marker, Circle } from '@react-google-maps/api';
 
-const containerStyle = {
+const libraries = ['places'];
+const mapContainerStyle = {
   width: '100%',
-  height: '500px',
-  borderRadius: '12px',
-  boxShadow: '0 0 15px rgba(0,0,0,0.2)'
+  height: '400px',
 };
 
-const getPlaceTypeByHour = () => {
+const defaultCenter = {
+  lat: 32.0853,
+  lng: 34.7818,
+};
+
+const getTimeBasedPlaceType = () => {
   const hour = new Date().getHours();
-  if (hour >= 6 && hour < 11) return "cafe";
-  if (hour >= 11 && hour < 17) return "meal_takeaway";
-  return "restaurant";
-};
-
-const getPlaceLabel = (type) => {
-  if (type === "cafe") return "בתי קפה";
-  if (type === "meal_takeaway") return "אוכל מהיר";
-  return "מסעדות רגילות";
+  if (hour < 12) return 'cafe';
+  if (hour >= 12 && hour < 18) return 'meal_takeaway';
+  return 'bar';
 };
 
 const MapComponent = () => {
-  const [location, setLocation] = useState(null);
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: 'AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8',
+    libraries,
+  });
+
   const [places, setPlaces] = useState([]);
+  const [location, setLocation] = useState(null);
+  const [radius, setRadius] = useState(null); // 🟢 ריק כברירת מחדל
   const [search, setSearch] = useState('');
-  const [radius, setRadius] = useState(1000);
-  const [filterByHour, setFilterByHour] = useState(true);
-  const [filterVisited, setFilterVisited] = useState(false);
-  const [minRating, setMinRating] = useState(0);
-
-  const isLoggedIn = localStorage.getItem("loggedIn") === "true";
-  const userEmail = localStorage.getItem("userEmail");
-
-  const fetchPlaces = (latitude, longitude) => {
-    const type = filterByHour ? getPlaceTypeByHour() : 'restaurant';
-    const query = new URLSearchParams({
-      lat: latitude,
-      lng: longitude,
-      type,
-      radius,
-      search,
-      min_rating: minRating
-    });
-
-    if (filterVisited && isLoggedIn && userEmail) {
-      query.append('email', userEmail);
-    }
-
-    fetch(`http://localhost:8000/api/nearby/?${query.toString()}`)
-      .then(res => res.json())
-      .then(data => setPlaces(data))
-      .catch(err => console.error("שגיאה ב-fetch:", err));
-  };
+  const [rating, setRating] = useState(0);
+  const [onlyVisited, setOnlyVisited] = useState(false);
+  const [showCircle, setShowCircle] = useState(true);
+  const [useTimeFilter, setUseTimeFilter] = useState(true);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setLocation({ lat: latitude, lng: longitude });
-        fetchPlaces(latitude, longitude);
       },
-      (err) => console.error("שגיאה באיתור מיקום:", err)
+      () => {
+        setLocation(defaultCenter);
+      }
     );
-  }, [filterByHour, filterVisited, radius, minRating]);
+  }, []);
 
   useEffect(() => {
-    if (location) {
-      fetchPlaces(location.lat, location.lng);
-    }
-  }, [search]);
+    if (location && radius !== null) fetchPlaces();
+  }, [location, radius, search, rating, onlyVisited, useTimeFilter]);
 
-  const currentTypeLabel = getPlaceLabel(filterByHour ? getPlaceTypeByHour() : 'restaurant');
+  const fetchPlaces = async () => {
+    try {
+      const email = localStorage.getItem('userEmail');
+      const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
+      const query = new URLSearchParams({
+        lat: location.lat,
+        lng: location.lng,
+        radius: radius || 1000,
+        search,
+        min_rating: rating,
+        type,
+        email: onlyVisited ? email : ''
+      }).toString();
+
+      const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
+      const data = await response.json();
+      setPlaces(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('⚠️ Error:', err);
+    }
+  };
+
+  if (!isLoaded || !location) return <div>טוען מפה...</div>;
 
   return (
-    <div className="map-page">
-      <div className="main-header">
-        <div className="site-title">🍴 RouteBite</div>
-        {isLoggedIn ? (
-          <button className="profile-btn">👤</button>
-        ) : (
-          <button className="login-btn" onClick={() => window.location.href = '/login'}>התחבר</button>
-        )}
-      </div>
+    <div className="container">
+      <header className="header">
+        <h1 className="logo">🍴 RouteBite</h1>
+        <button className="login-button">התחבר</button>
+      </header>
 
-      <div className="content-wrapper">
-        <div className="sidebar">
-          <p>מציג כעת: <strong>{currentTypeLabel}</strong></p>
-
+      <div className="content">
+        <aside className="sidebar">
           <input
             type="text"
             placeholder="חפש מסעדה..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <label>
+            <input
+              type="checkbox"
+              checked={onlyVisited}
+              onChange={(e) => setOnlyVisited(e.target.checked)}
+            />
+            רק שביקרתי
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={useTimeFilter}
+              onChange={(e) => setUseTimeFilter(e.target.checked)}
+            />
+            מיון לפי שעה
+          </label>
+          <label>
+            דירוג מינימלי:
+            <select onChange={(e) => setRating(e.target.value)}>
+              <option value="0">ללא סינון</option>
+              <option value="4">4+</option>
+              <option value="4.5">4.5+</option>
+              <option value="5">5 בלבד</option>
+            </select>
+          </label>
+          <label>
+            מרחק:
+            <select value={radius || ''} onChange={(e) => setRadius(parseInt(e.target.value))}>
+              <option value="">בחר רדיוס</option>
+              <option value="500">500 מטר</option>
+              <option value="1000">1000 מטר</option>
+              <option value="1500">1500 מטר</option>
+              <option value="2000">2000 מטר</option>
+              <option value="3000">3000 מטר</option>
+            </select>
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={showCircle}
+              onChange={() => setShowCircle(!showCircle)}
+            />
+            הצג טבעת רדיוס
+          </label>
+        </aside>
 
-          <div className="filters">
-            <label><input type="checkbox" checked={filterByHour} onChange={() => setFilterByHour(!filterByHour)} /> לפי שעה</label>
-            <label>
-              <input
-                type="checkbox"
-                checked={filterVisited}
-                onChange={() => {
-                  if (!isLoggedIn) {
-                    alert("כדי להציג מסעדות שביקרת בהן, עליך להתחבר.");
-                    return;
-                  }
-                  setFilterVisited(!filterVisited);
-                }}
-              /> רק שביקרתי
-            </label>
-            <label>
-              דירוג מינימלי:
-              <select value={minRating} onChange={(e) => setMinRating(Number(e.target.value))}>
-                <option value={0}>ללא סינון</option>
-                <option value={4}>⭐ 4+</option>
-                <option value={4.5}>⭐ 4.5+</option>
-                <option value={5}>⭐ 5 בלבד</option>
-              </select>
-            </label>
-            <label>
-              מרחק (מטרים):
-              <select value={radius} onChange={(e) => setRadius(Number(e.target.value))}>
-                <option value={500}>500</option>
-                <option value={1000}>1000</option>
-                <option value={2000}>2000</option>
-                <option value={5000}>5000</option>
-              </select>
-            </label>
+        <main className="map-container">
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={location}
+            zoom={15}
+          >
+            <Marker position={location} label="אתה כאן" />
+            {showCircle && radius && (
+              <Circle
+                center={location}
+                radius={radius}
+                options={{ fillColor: '#90caf9', strokeColor: '#1976d2' }}
+              />
+            )}
+
+            {(Array.isArray(places) ? places : []).map((place, i) => (
+              <Marker
+                key={i}
+                position={{ lat: place.lat, lng: place.lng }}
+                label={place.name}
+              />
+            ))}
+          </GoogleMap>
+
+          <div className="results">
+            <h3>תוצאות:</h3>
+            {places.length === 0 ? (
+              <p>לא נמצאו מסעדות.</p>
+            ) : (
+              <div className="cards">
+                {places.map((place, i) => (
+                  <div key={i} className="card">
+                    <h4>{place.name}</h4>
+                    <p>דירוג: {place.rating || 'אין'}</p>
+                    <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
+                    {place.visited && <p className="visited">✅ ביקרת כאן</p>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-
-        <div className="map-wrapper">
-          <LoadScript googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-            <GoogleMap
-              mapContainerStyle={containerStyle}
-              center={location || { lat: 32.08, lng: 34.78 }}
-              zoom={15}
-            >
-              {location && (
-                <>
-                  <Marker position={location} label="אתה כאן" />
-                  <Circle
-                    key={`radius-${radius}`}
-                    center={location}
-                    radius={radius}
-                    options={{
-                      fillColor: '#00bcd4',
-                      fillOpacity: 0.1,
-                      strokeColor: '#00838f',
-                      strokeWeight: 2
-                    }}
-                  />
-                </>
-              )}
-              {places.map((place, index) => (
-                <Marker
-                  key={index}
-                  position={{ lat: place.lat, lng: place.lng }}
-                  title={place.name}
-                  icon={{
-                    url: `http://maps.google.com/mapfiles/ms/icons/${place.icon_color}-dot.png`
-                  }}
-                />
-              ))}
-            </GoogleMap>
-          </LoadScript>
-        </div>
-      </div>
-
-      <div className="results-section">
-        <h3>תוצאות:</h3>
-        <div className="results-grid">
-          {places.map((place, index) => (
-            <div key={index} className="place-card">
-              <h4>{place.name}</h4>
-              <p>⭐ {place.rating || 'N/A'}</p>
-              <p>📏 {Math.round(place.distance_in_meters)} מטר</p>
-            </div>
-          ))}
-        </div>
+        </main>
       </div>
     </div>
   );
