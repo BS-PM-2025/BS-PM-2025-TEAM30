@@ -1,5 +1,5 @@
 // 📁 MapComponent.js - כולל שיפור הצגת מיקום נוכחי, טבעת לפי רדיוס דינמי, fallback לפי עיר
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './MapComponent.css';
 import { GoogleMap, useLoadScript, Marker, Circle } from '@react-google-maps/api';
 
