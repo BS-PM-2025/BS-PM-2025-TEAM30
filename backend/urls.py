@@ -24,4 +24,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/nearby/', nearby_restaurants),
     path('api/forgot-password/', ForgotPasswordView.as_view()),
+    path('api/restaurants/', include('backend.addrestaurants.urls')),
 ]
