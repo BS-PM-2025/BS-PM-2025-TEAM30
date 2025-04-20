@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Login.css';
+import {useNavigate} from "react-router-dom";
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,6 +21,8 @@ const Login = () => {
     try {
       const res = await axios.post('http://localhost:8000/api/login/', form);
       setSuccess(res.data.message || 'התחברת בהצלחה!');
+      navigate('restaurants');
+
     } catch (err) {
       setError(err.response?.data?.error || 'שגיאה בהתחברות 😥');
     }

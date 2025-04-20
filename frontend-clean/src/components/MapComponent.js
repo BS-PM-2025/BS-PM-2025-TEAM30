@@ -122,9 +122,18 @@ const MapComponent = () => {
   return (
     <div className="container">
       <header className="header">
-        <h1 className="logo">🍴 RouteBite</h1>
-        <button className="login-button">התחבר</button>
-      </header>
+  <h1 className="logo">🍴 RouteBite</h1>
+  <button
+    className="login-button"
+    onClick={() => {
+      localStorage.removeItem('userEmail');
+      window.location.href = '/';
+    }}
+  >
+    התנתק
+  </button>
+</header>
+
 
       <div className="content">
         <aside className="sidebar">
