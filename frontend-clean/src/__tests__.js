@@ -43,3 +43,25 @@ describe('🔐 ForgotPassword Component', () => {
     });
   });
 });
+describe('🗺️ MapComponent', () => {
+  test('מציג טקסט טעינה כשהמפה לא נטענה', () => {
+    jest.mock('@react-google-maps/api', () => ({
+      ...jest.requireActual('@react-google-maps/api'),
+      useLoadScript: () => ({ isLoaded: false }),
+    }));
+
+    const { container } = render(<MapComponent />);
+    expect(container).toHaveTextContent('טוען מפה');
+  });
+
+  test('מציג קלט ידני אם כשל ב-GPS', () => {
+    // mock geolocation failure
+    global.navigator.geolocation = {
+      getCurrentPosition: (_, errorCallback) => errorCallback(),
+    };
+
+    render(<MapComponent />);
+    expect(screen.getByText(/הזן מיקום ידני/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/הכנס כתובת/i)).toBeInTheDocument();
+  });
+});

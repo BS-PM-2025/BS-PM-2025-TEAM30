@@ -56,27 +56,61 @@ const MapComponent = () => {
     if (location && (radius || !showCircle)) fetchPlaces();
   }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle]);
 
-  const fetchPlaces = async () => {
-    try {
-      const email = localStorage.getItem('userEmail');
-      const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
-      const query = new URLSearchParams({
-        lat: location.lat,
-        lng: location.lng,
-        radius: radius || 1000,
-        search,
-        min_rating: rating,
-        type,
-        email: onlyVisited ? email : ''
-      }).toString();
+const fetchPlaces = async () => {
+  try {
+    const email = localStorage.getItem('userEmail');
+    const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
 
-      const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
-      const data = await response.json();
-      setPlaces(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('⚠️ Error:', err);
+    // fallback לפי עיר אם אין רדיוס, חיפוש או ביקורים
+    const isDefaultSearch = !radius && !search && !onlyVisited;
+    if (isDefaultSearch && location) {
+      const geoRes = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`
+      );
+      const geoData = await geoRes.json();
+      const city = geoData.results[0]?.address_components.find(c =>
+        c.types.includes("locality")
+      )?.long_name;
+
+      if (city) {
+        const cityRes = await fetch(
+          `https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`
+        );
+        const cityData = await cityRes.json();
+        setPlaces(
+          Array.isArray(cityData.results)
+            ? cityData.results.map(p => ({
+                name: p.name,
+                lat: p.geometry.location.lat,
+                lng: p.geometry.location.lng,
+                rating: p.rating || null,
+                distance_in_meters: null,
+                visited: false,
+              }))
+            : []
+        );
+        return;
+      }
     }
-  };
+
+    // בקשת fetch רגילה לפי הפילטרים הרגילים
+    const query = new URLSearchParams({
+      lat: location.lat,
+      lng: location.lng,
+      radius: radius || 1000,
+      search,
+      min_rating: rating,
+      type,
+      email: onlyVisited ? email : ''
+    }).toString();
+
+    const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
+    const data = await response.json();
+    setPlaces(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error('⚠️ Error:', err);
+  }
+};
 
   const geocodeAddress = async (address, callback) => {
     try {
