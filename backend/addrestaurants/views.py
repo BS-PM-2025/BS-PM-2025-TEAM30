@@ -4,7 +4,7 @@ from .models import Restaurant
 from .serializers import RestaurantSerializer
 
 class RestaurantCreateView(generics.CreateAPIView):
-    queryset = Restaurant.objects.all()
+    queryset = Restaurant.objects.order_by('-is_promoted', '-created_at')
     serializer_class = RestaurantSerializer
 
     def create(self, request, *args, **kwargs):
