@@ -30,6 +30,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
+REACT_APP_GOOGLE_MAPS_API_KEY='AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -41,11 +42,13 @@ INSTALLED_APPS = [
     'backend.user',
     'rest_framework',
     'backend.addrestaurants',
+    'backend.restaurants',
     'corsheaders',
 
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # חובה לשים ראשון כדי שיתפוס לפני הכל
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -53,9 +56,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # ⬅ להוסיף ראשון
-    'django.middleware.common.CommonMiddleware',  # ⬅ אפשר להוסיף אחרי זה
 ]
+
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -137,3 +139,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'idantegave777@gmail.com'  # כאן תכניס את כתובת הג'ימייל שלך
+EMAIL_HOST_PASSWORD = 'yeyj pcjd kpok minx'  # הסיסמה שקיבלת מהשלב הקודם
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+CORS_ALLOW_ALL_ORIGINS = True

@@ -20,6 +20,7 @@ const Register = () => {
     e.preventDefault();
     try {
       await axios.post('http://localhost:8000/api/register/', form);
+      //await axios.post('http://127.0.0.1:8000/api/register/', form);
       alert('נרשמת בהצלחה!');
       setForm({ email: '', first_name: '', last_name: '', password: '' });
     } catch (err) {
@@ -68,7 +69,7 @@ const Register = () => {
           <button type="submit">הרשמה</button>
         </form>
 
-        <span className="login-link">👤 כבר רשום? התחבר כאן</span>
+        <span className="login-link">כבר רשום? <a href="/login">התחבר כאן</a> </span>
       </div>
     </div>
   );

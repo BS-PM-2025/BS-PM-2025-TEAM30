@@ -16,9 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from .views import nearby_restaurants
+from backend.user.views import ForgotPasswordView
 
 urlpatterns = [
     path('api/', include('backend.user.urls')),
     path('admin/', admin.site.urls),
     path('api/restaurants/', include('backend.addrestaurants.urls')),
+    path('api/nearby/', nearby_restaurants),
+    path('api/forgot-password/', ForgotPasswordView.as_view()),
 ]
