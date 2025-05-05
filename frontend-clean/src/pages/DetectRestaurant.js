@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import './DetectRestaurant.css';
 
 const DetectRestaurant = () => {
   const [restaurant, setRestaurant] = useState(null);
   const [error, setError] = useState("");
-  const [manualId, setManualId] = useState("");
+  const [restaurantName, setRestaurantName] = useState("");
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const idFromUrl = searchParams.get("id");
-    if (idFromUrl) {
-      detectById(idFromUrl);
+    const nameFromUrl = searchParams.get("name");
+    if (nameFromUrl) {
+      detectByName(nameFromUrl);
     }
   }, [searchParams]);
 
@@ -38,12 +39,12 @@ const DetectRestaurant = () => {
     });
   };
 
-  const detectById = async (id) => {
+  const detectByName = async (name) => {
     try {
       const res = await fetch("http://localhost:8000/api/restaurants/detect/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ name }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -67,31 +68,43 @@ const DetectRestaurant = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>📍 זיהוי מסעדה לפי מיקום או מזהה</h2>
+    <div
+      className="detect-container"
+      style={{
+        backgroundImage: "url('/images/misshilla-menu-meatbar.webp')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="detect-box">
+        <h2 className="detect-title">📍 זיהוי מסעדה לפי מיקום או שם</h2>
 
-      <button onClick={detectByLocation}>זהה לפי מיקום</button>
-
-      <div style={{ marginTop: "10px" }}>
-        <input
-          type="number"
-          placeholder="מזהה מסעדה"
-          value={manualId}
-          onChange={(e) => setManualId(e.target.value)}
-        />
-        <button onClick={() => detectById(manualId)}>זהה לפי מזהה</button>
-      </div>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {restaurant && (
-        <div style={{ border: "1px solid gray", padding: "10px", marginTop: "20px" }}>
-          <h3>{restaurant.name}</h3>
-          <p>{restaurant.description || "אין תיאור"}</p>
-          <p>כתובת: {restaurant.address}</p>
-          <button onClick={promote}>סמן כמומלצת ⭐</button>
+        <div className="detect-buttons">
+          <button onClick={detectByLocation}>זהה לפי מיקום</button>
         </div>
-      )}
+
+        <div className="detect-input-group">
+          <input
+            type="text"
+            placeholder="שם מסעדה"
+            value={restaurantName}
+            onChange={(e) => setRestaurantName(e.target.value)}
+          />
+          <button onClick={() => detectByName(restaurantName)}>זהה לפי שם</button>
+        </div>
+
+        {error && <p className="detect-error">{error}</p>}
+
+        {restaurant && (
+          <div className="restaurant-card fade-in">
+            <h3>{restaurant.name}</h3>
+            <p>{restaurant.description || "אין תיאור"}</p>
+            <p>כתובת: {restaurant.address}</p>
+            <button onClick={promote}>סמן כמומלצת ⭐</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

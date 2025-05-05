@@ -1,0 +1,106 @@
+.detect-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* שכבת שקיפות מעל התמונה */
+.detect-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.4); /* לבן שקוף */
+  z-index: 0;
+}
+
+.detect-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.4); /* לבן שקוף יותר */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  width: 400px;
+  text-align: center;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.detect-title {
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+}
+
+.detect-buttons button,
+.detect-input-group button {
+  background-color: #ff7f50;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.detect-buttons button:hover,
+.detect-input-group button:hover {
+  background-color: #ff5c2a;
+  transform: translateY(-2px);
+}
+
+.detect-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.detect-input-group input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.detect-error {
+  color: red;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.restaurant-card {
+  background-color: rgba(255, 255, 255, 0.8);
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
