@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'backend.user',
     'rest_framework',
+    'backend.addrestaurants',
     'backend.restaurants',
     'backend.addrestaurants',
     'corsheaders',
