@@ -65,6 +65,7 @@ const MapComponent = () => {
     libraries,
   });
 
+  const [loadLevelFilter, setLoadLevelFilter] = useState('');
   const [places, setPlaces] = useState([]);
   const [location, setLocation] = useState(null);
   const [radius, setRadius] = useState(1000);
@@ -98,14 +99,19 @@ const MapComponent = () => {
     );
   }, []);
 
-  useEffect(() => {
-    if (location && (radius || !showCircle)) fetchPlaces();
-  }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle]);
+useEffect(() => {
+  if (location && (radius || !showCircle)) fetchPlaces();
+}, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
 
 const fetchPlaces = async () => {
   try {
     const email = localStorage.getItem('userEmail');
     const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
+
+    const randomLoad = () => {
+      const levels = ['low', 'medium', 'high'];
+      return levels[Math.floor(Math.random() * levels.length)];
+    };
 
     // fallback לפי עיר אם אין רדיוס, חיפוש או ביקורים
     const isDefaultSearch = !radius && !search && !onlyVisited;
@@ -185,27 +191,27 @@ const fetchPlaces = async () => {
     }
   };
 
-const removeVisit = async (place) => {
-  const email = localStorage.getItem('userEmail');
-  if (!email) return alert("התחבר כדי להסיר מהרשימה");
+  const removeVisit = async (place) => {
+    const email = localStorage.getItem('userEmail');
+    if (!email) return alert("התחבר כדי להסיר מהרשימה");
 
-  try {
-    const res = await fetch('http://localhost:8000/api/visit/remove', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        restaurant_name: place.name
-      })
-    });
-    const data = await res.json();
-    alert(data.message || "הוסר מהרשימה");
-    fetchPlaces();
-  } catch (err) {
-    console.error(err);
-    alert("שגיאה בהסרה");
-  }
-};
+    try {
+      const res = await fetch('http://localhost:8000/api/visit/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          restaurant_name: place.name
+        })
+      });
+      const data = await res.json();
+      alert(data.message || "הוסר מהרשימה");
+      fetchPlaces();
+    } catch (err) {
+      console.error(err);
+      alert("שגיאה בהסרה");
+    }
+  };
 
 
   const geocodeAddress = async (address, callback) => {
@@ -225,14 +231,14 @@ const removeVisit = async (place) => {
       if (mapRef.current) mapRef.current.panTo(coords);
     });
   };
-const translateLoadLevel = (level) => {
-  switch (level) {
-    case 'low': return 'נמוך';
-    case 'medium': return 'בינוני';
-    case 'high': return 'גבוה';
-    default: return 'לא ידוע';
-  }
-};
+  const translateLoadLevel = (level) => {
+    switch (level) {
+      case 'low': return 'נמוך';
+      case 'medium': return 'בינוני';
+      case 'high': return 'גבוה';
+      default: return 'לא ידוע';
+    }
+  };
 
   const handleDestinationSearch = () => {
     geocodeAddress(destination, (coords) => {
@@ -275,18 +281,18 @@ const translateLoadLevel = (level) => {
 
       <div className="content">
         <aside className="sidebar">
-          <label>
-  רמת עומס:
-  <select
-    value={loadLevelFilter}
-    onChange={(e) => setLoadLevelFilter(e.target.value)}
-  >
-    <option value="">ללא סינון</option>
-    <option value="low">נמוך</option>
-    <option value="medium">בינוני</option>
-    <option value="high">גבוה</option>
-  </select>
-</label>
+            <label>
+                רמת עומס:
+                <select
+                  value={loadLevelFilter}
+                  onChange={(e) => setLoadLevelFilter(e.target.value)}
+                >
+                  <option value="">ללא סינון</option>
+                  <option value="low">נמוך</option>
+                  <option value="medium">בינוני</option>
+                  <option value="high">גבוה</option>
+                </select>
+          </label>
 
           <input
             type="text"
@@ -411,13 +417,13 @@ const translateLoadLevel = (level) => {
                     )}
                       <p>עומס: {translateLoadLevel(place.load_level)}</p>
                       <button
-  onClick={() => {
-    console.log('🔘 נלחץ שמור על', place);
-    handleSave(place);
-  }}
->
-  📌 שמור כתובת
-</button>
+                        onClick={() => {
+                          console.log('🔘 נלחץ שמור על', place);
+                          handleSave(place);
+                        }}
+                      >
+                        📌 שמור כתובת
+                      </button>
 
                     {place.visited && <p className="visited">✅ ביקרת כאן</p>}
                   </div>
