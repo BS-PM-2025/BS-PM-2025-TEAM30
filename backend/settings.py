@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'backend.addrestaurants',
     'backend.restaurants',
-    'backend.addrestaurants',
     'corsheaders',
 
 ]

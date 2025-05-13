@@ -20,10 +20,9 @@ from .views import nearby_restaurants
 from backend.user.views import ForgotPasswordView
 
 urlpatterns = [
-    path('api/', include('backend.user.urls')),
     path('admin/', admin.site.urls),
+    path('api/', include('backend.user.urls')),
     path('api/restaurants/', include('backend.addrestaurants.urls')),
     path('api/nearby/', nearby_restaurants),
     path('api/forgot-password/', ForgotPasswordView.as_view()),
-    path('api/restaurants/', include('backend.addrestaurants.urls')),
 ]

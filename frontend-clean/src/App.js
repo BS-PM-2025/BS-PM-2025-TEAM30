@@ -6,6 +6,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import DetectRestaurant from './pages/DetectRestaurant';
+import PendingRestaurantsPage from './pages/PendingRestaurantsPage'; // ✅ ייבוא הדף החדש
 
 function App() {
   return (
@@ -19,10 +20,10 @@ function App() {
         <Route path="/restaurants" element={<MapComponent />} />
         <Route path="/addrestaurant" element={<AddRestaurantPage />} />
         <Route path="/detect" element={<DetectRestaurant />} />
+        <Route path="/pending" element={<PendingRestaurantsPage />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-

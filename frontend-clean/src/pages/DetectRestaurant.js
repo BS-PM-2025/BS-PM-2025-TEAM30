@@ -79,33 +79,35 @@ const DetectRestaurant = () => {
     >
       <div className="detect-box">
         <h2 className="detect-title">📍 זיהוי מסעדה לפי מיקום או שם</h2>
-    <div style={{ padding: "20px" }}>
-      <h2>📍 זיהוי מסעדה לפי מיקום או מזהה</h2>
 
-        <div className="detect-buttons">
-          <button onClick={detectByLocation}>זהה לפי מיקום</button>
-        </div>
+        <div style={{ padding: "20px" }}>
+          <h2>📍 זיהוי מסעדה לפי מיקום או מזהה</h2>
 
-        <div className="detect-input-group">
-          <input
-            type="text"
-            placeholder="שם מסעדה"
-            value={restaurantName}
-            onChange={(e) => setRestaurantName(e.target.value)}
-          />
-          <button onClick={() => detectByName(restaurantName)}>זהה לפי שם</button>
-        </div>
-
-        {error && <p className="detect-error">{error}</p>}
-
-        {restaurant && (
-          <div className="restaurant-card fade-in">
-            <h3>{restaurant.name}</h3>
-            <p>{restaurant.description || "אין תיאור"}</p>
-            <p>כתובת: {restaurant.address}</p>
-            <button onClick={promote}>סמן כמומלצת ⭐</button>
+          <div className="detect-buttons">
+            <button onClick={detectByLocation}>זהה לפי מיקום</button>
           </div>
-        )}
+
+          <div className="detect-input-group">
+            <input
+              type="text"
+              placeholder="שם מסעדה"
+              value={restaurantName}
+              onChange={(e) => setRestaurantName(e.target.value)}
+            />
+            <button onClick={() => detectByName(restaurantName)}>זהה לפי שם</button>
+          </div>
+
+          {error && <p className="detect-error">{error}</p>}
+
+          {restaurant && (
+            <div className="restaurant-card fade-in">
+              <h3>{restaurant.name}</h3>
+              <p>{restaurant.description || "אין תיאור"}</p>
+              <p>כתובת: {restaurant.address}</p>
+              <button onClick={promote}>סמן כמומלצת ⭐</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

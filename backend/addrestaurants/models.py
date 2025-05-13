@@ -15,5 +15,7 @@ class Restaurant(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
+    is_approved = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
