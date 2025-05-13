@@ -26,4 +26,6 @@ urlpatterns = [
     path('api/nearby/', nearby_restaurants),
     path('api/forgot-password/', ForgotPasswordView.as_view()),
     path('api/restaurants/', include('backend.addrestaurants.urls')),
+    path('', include('backend.restaurants.urls')),  # לפי שם האפליקציה
+
 ]
