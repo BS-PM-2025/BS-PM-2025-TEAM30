@@ -38,3 +38,9 @@ def detect_restaurant(request):
             return Response(RestaurantSerializer(closest).data)
 
     return Response({'error': 'יש לשלוח שם מסעדה או מיקום'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def pending_restaurants(request):
+    pending = Restaurant.objects.filter(is_approved=False)
+    serializer = RestaurantSerializer(pending, many=True)
+    return Response(serializer.data)
