@@ -169,3 +169,15 @@ body {
 .card h4 {
   margin-bottom: 4px;
 }
+.card button {
+  margin-top: 6px;
+  padding: 4px 8px;
+  background-color: #90caf9;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.card button:hover {
+  background-color: #64b5f6;
+}

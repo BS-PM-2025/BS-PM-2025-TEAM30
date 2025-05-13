@@ -64,10 +64,10 @@ const MapComponent = () => {
     googleMapsApiKey: 'AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8',
     libraries,
   });
-  const [loadLevelFilter, setLoadLevelFilter] = useState('');
+
   const [places, setPlaces] = useState([]);
   const [location, setLocation] = useState(null);
-  const [radius, setRadius] = useState(1000); // ברירת מחדל אם יש טבעת
+  const [radius, setRadius] = useState(1000);
   const [search, setSearch] = useState('');
   const [rating, setRating] = useState(0);
   const [onlyVisited, setOnlyVisited] = useState(false);
@@ -77,7 +77,10 @@ const MapComponent = () => {
   const [destination, setDestination] = useState('');
   const [gpsFailed, setGpsFailed] = useState(false);
 
+
   const mapRef = useRef(null);
+  const circleRef = useRef(null);
+
   const onMapLoad = (map) => {
     mapRef.current = map;
     if (location) map.panTo(location);
@@ -95,20 +98,15 @@ const MapComponent = () => {
     );
   }, []);
 
-useEffect(() => {
-  if (location && (radius || !showCircle)) fetchPlaces();
-}, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
-
+  useEffect(() => {
+    if (location && (radius || !showCircle)) fetchPlaces();
+  }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle]);
 
 const fetchPlaces = async () => {
   try {
     const email = localStorage.getItem('userEmail');
     const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
-        // פונקציית עזר להגרלת עומס
-    const randomLoad = () => {
-      const levels = ['low', 'medium', 'high'];
-      return levels[Math.floor(Math.random() * levels.length)];
-    };
+
     // fallback לפי עיר אם אין רדיוס, חיפוש או ביקורים
     const isDefaultSearch = !radius && !search && !onlyVisited;
     if (isDefaultSearch && location) {
@@ -120,26 +118,20 @@ const fetchPlaces = async () => {
         c.types.includes("locality")
       )?.long_name;
 
-      if (city) {
-        const cityRes = await fetch(
-          `https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`
-        );
-        const cityData = await cityRes.json();
-        setPlaces(
-          Array.isArray(cityData.results)
-            ? cityData.results.map(p => ({
-                name: p.name,
-                lat: p.geometry.location.lat,
-                lng: p.geometry.location.lng,
-                rating: p.rating || null,
-                distance_in_meters: null,
-                visited: false,
-              }))
-            : []
-        );
-        return;
+        if (city) {
+          const cityRes = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=YOUR_API_KEY`);
+          const cityData = await cityRes.json();
+          setPlaces(cityData.results.map(p => ({
+            name: p.name,
+            lat: p.geometry.location.lat,
+            lng: p.geometry.location.lng,
+            rating: p.rating || null,
+            distance_in_meters: null,
+            visited: false,
+          })));
+          return;
+        }
       }
-    }
 
     // בקשת fetch רגילה לפי הפילטרים הרגילים
     const query = new URLSearchParams({
@@ -168,6 +160,53 @@ const fetchPlaces = async () => {
     console.error('⚠️ Error:', err);
   }
 };
+
+
+  const markAsVisited = async (place) => {
+    const email = localStorage.getItem('userEmail');
+    if (!email) return alert("התחבר כדי לשמור ביקורים");
+    try {
+      const res = await fetch('http://localhost:8000/api/visit/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          restaurant_name: place.name,
+          lat: place.lat,
+          lng: place.lng,
+          rating: place.rating
+        })
+      });
+      const data = await res.json();
+      alert(data.message || 'נשמר!');
+    } catch (err) {
+      console.error(err);
+      alert("שגיאה בשמירה");
+    }
+  };
+
+const removeVisit = async (place) => {
+  const email = localStorage.getItem('userEmail');
+  if (!email) return alert("התחבר כדי להסיר מהרשימה");
+
+  try {
+    const res = await fetch('http://localhost:8000/api/visit/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        restaurant_name: place.name
+      })
+    });
+    const data = await res.json();
+    alert(data.message || "הוסר מהרשימה");
+    fetchPlaces();
+  } catch (err) {
+    console.error(err);
+    alert("שגיאה בהסרה");
+  }
+};
+
 
   const geocodeAddress = async (address, callback) => {
     try {
@@ -251,7 +290,7 @@ const translateLoadLevel = (level) => {
 
           <input
             type="text"
-            placeholder="חפש מסעדה..."
+            placeholder="הכנס מסעדה או עיר"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -304,14 +343,20 @@ const translateLoadLevel = (level) => {
               <option value="3000">3000 מטר</option>
             </select>
           </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={showCircle}
-              onChange={() => setShowCircle(!showCircle)}
-            />
-            הצג טבעת רדיוס
-          </label>
+            <label>
+                <input
+                  type="checkbox"
+                  checked={showCircle}
+                  onChange={() => {
+                    if (showCircle && circleRef.current) {
+                      circleRef.current.setMap(null);
+                      circleRef.current = null;
+                    }
+                    setShowCircle(!showCircle);
+                  }}
+                />
+              הצג טבעת רדיוס
+            </label>
         </aside>
 
         <main className="map-container">
@@ -322,13 +367,23 @@ const translateLoadLevel = (level) => {
             onLoad={onMapLoad}
           >
             <Marker position={location} label="אתה כאן" />
-            {showCircle && radius && (
-              <Circle
-                center={location}
-                radius={radius}
-                options={{ fillColor: '#90caf9', strokeColor: '#1976d2' }}
-              />
-            )}
+              {showCircle && radius > 0 && (
+                <Circle
+                  center={location}
+                  radius={radius}
+                  options={{
+                    fillColor: '#90caf9',
+                    strokeColor: '#1976d2',
+                  }}
+                  onLoad={circle => {
+                    circleRef.current = circle;
+                  }}
+                  onUnmount={() => {
+                    circleRef.current = null;
+                  }}
+                />
+              )}
+
             {places.map((place, i) => (
               <Marker
                 key={i}
@@ -349,6 +404,11 @@ const translateLoadLevel = (level) => {
                     <h4>{place.name}</h4>
                     <p>דירוג: {place.rating || 'אין'}</p>
                     <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
+                    {place.visited ? (
+                        <button onClick={() => removeVisit(place)}>הסר מהרשימה</button>
+                      ) : (
+                        <button onClick={() => markAsVisited(place)}>ביקרתי כאן</button>
+                    )}
                       <p>עומס: {translateLoadLevel(place.load_level)}</p>
                       <button
   onClick={() => {
