@@ -4,8 +4,14 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
 
-// רכיבים לבדיקה
-import ForgotPassword from '../pages/ForgotPassword';
+import ForgotPassword from '../src/pages/ForgotPassword';
+import MapComponent from "./components/MapComponent";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import { markAsVisited } from '../src/components/MapComponent';
+import {removeVisit} from '../src/components/MapComponent';
+import * as test from "node:test";
+
 
 jest.mock('axios'); // נוודא שכל הבקשות לשרת מדומות
 
@@ -147,4 +153,23 @@ describe('📝 Register Component', () => {
       expect(screen.getByText(/אירעה שגיאה בהרשמה/i)).toBeInTheDocument()
     );
   });
+
+  test('שולח בקשת ביקור לשרת', async () => {
+    axios.post.mockResolvedValue({ data: { message: 'Visit saved!' } });
+    await markAsVisited({
+      name: 'Test Restaurant',
+      lat: 32.1,
+      lng: 34.8,
+      rating: 4.7
+    });
+    expect(axios.post).toHaveBeenCalledWith(
+      'http://localhost:8000/api/visit/',
+      expect.objectContaining({
+        email: expect.any(String),
+        restaurant_name: 'Test Restaurant',
+      }),
+      expect.anything()
+    );
+  });
+
 });
