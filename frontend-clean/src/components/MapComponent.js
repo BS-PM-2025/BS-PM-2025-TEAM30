@@ -16,6 +16,49 @@ const getTimeBasedPlaceType = () => {
   return 'bar';
 };
 
+const getAddressFromCoords = async (lat, lng) => {
+  try {
+    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`);
+    const data = await res.json();
+    return data.results?.[0]?.formatted_address || '';
+  } catch (err) {
+    console.error('שגיאה בהבאת כתובת', err);
+    return '';
+  }
+};
+const handleSave = async (place) => {
+  const email = localStorage.getItem('userEmail');
+  const address = await getAddressFromCoords(place.lat, place.lng); // ← כאן
+
+  if (email) {
+    const res = await fetch("http://localhost:8000/api/save-restaurant/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_email: email,
+        name: place.name,
+        lat: place.lat,
+        lng: place.lng,
+        address: address // ← לא place.address
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message || 'נשמר');
+  } else {
+    const saved = JSON.parse(localStorage.getItem('savedRestaurants')) || [];
+    if (!saved.find(p => p.name === place.name)) {
+      saved.push({ name: place.name, lat: place.lat, lng: place.lng, address });
+      localStorage.setItem('savedRestaurants', JSON.stringify(saved));
+      alert(`✅ נשמר מקומית`);
+    } else {
+      alert(`⚠️ כבר נשמר מקומית`);
+    }
+  }
+};
+
+
+
 const MapComponent = () => {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: 'AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8',
@@ -184,7 +227,12 @@ const fetchPlaces = async () => {
             onChange={(e) => setDestination(e.target.value)}
           />
           <button onClick={handleDestinationSearch}>חפש יעד</button>
-
+           <button
+    style={{ marginTop: '10px', background: '#ffd700', color: 'black', fontWeight: 'bold' }}
+    onClick={() => window.location.href = '/saved'}
+  >
+    ⭐ למסעדות ששמרתי
+  </button>
           <label>
             <input
               type="checkbox"
@@ -266,6 +314,15 @@ const fetchPlaces = async () => {
                     <h4>{place.name}</h4>
                     <p>דירוג: {place.rating || 'אין'}</p>
                     <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
+                      <button
+  onClick={() => {
+    console.log('🔘 נלחץ שמור על', place);
+    handleSave(place);
+  }}
+>
+  📌 שמור כתובת
+</button>
+
                     {place.visited && <p className="visited">✅ ביקרת כאן</p>}
                   </div>
                 ))}

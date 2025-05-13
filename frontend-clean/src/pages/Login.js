@@ -22,6 +22,7 @@ const Login = () => {
       const res = await axios.post('http://localhost:8000/api/login/', form);
       setSuccess(res.data.message || 'התחברת בהצלחה!');
       navigate('restaurants');
+      localStorage.setItem('userEmail', form.email);
 
     } catch (err) {
       setError(err.response?.data?.error || 'שגיאה בהתחברות 😥');
