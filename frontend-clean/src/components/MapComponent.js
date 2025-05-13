@@ -64,7 +64,7 @@ const MapComponent = () => {
     googleMapsApiKey: 'AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8',
     libraries,
   });
-
+  const [loadLevelFilter, setLoadLevelFilter] = useState('');
   const [places, setPlaces] = useState([]);
   const [location, setLocation] = useState(null);
   const [radius, setRadius] = useState(1000); // ברירת מחדל אם יש טבעת
@@ -95,15 +95,20 @@ const MapComponent = () => {
     );
   }, []);
 
-  useEffect(() => {
-    if (location && (radius || !showCircle)) fetchPlaces();
-  }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle]);
+useEffect(() => {
+  if (location && (radius || !showCircle)) fetchPlaces();
+}, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
+
 
 const fetchPlaces = async () => {
   try {
     const email = localStorage.getItem('userEmail');
     const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
-
+        // פונקציית עזר להגרלת עומס
+    const randomLoad = () => {
+      const levels = ['low', 'medium', 'high'];
+      return levels[Math.floor(Math.random() * levels.length)];
+    };
     // fallback לפי עיר אם אין רדיוס, חיפוש או ביקורים
     const isDefaultSearch = !radius && !search && !onlyVisited;
     if (isDefaultSearch && location) {
@@ -144,12 +149,21 @@ const fetchPlaces = async () => {
       search,
       min_rating: rating,
       type,
+      load_level: loadLevelFilter,
+
       email: onlyVisited ? email : ''
     }).toString();
 
     const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
     const data = await response.json();
-    setPlaces(Array.isArray(data) ? data : []);
+    setPlaces(
+  Array.isArray(data)
+    ? data.map(p => ({
+        ...p,
+        load_level: randomLoad() // 🆕 הוספת העומס לכל מסעדה
+      })).filter(p => !loadLevelFilter || p.load_level === loadLevelFilter) // ✅ סינון לפי העומס
+    : []
+);
   } catch (err) {
     console.error('⚠️ Error:', err);
   }
@@ -172,6 +186,14 @@ const fetchPlaces = async () => {
       if (mapRef.current) mapRef.current.panTo(coords);
     });
   };
+const translateLoadLevel = (level) => {
+  switch (level) {
+    case 'low': return 'נמוך';
+    case 'medium': return 'בינוני';
+    case 'high': return 'גבוה';
+    default: return 'לא ידוע';
+  }
+};
 
   const handleDestinationSearch = () => {
     geocodeAddress(destination, (coords) => {
@@ -214,6 +236,19 @@ const fetchPlaces = async () => {
 
       <div className="content">
         <aside className="sidebar">
+          <label>
+  רמת עומס:
+  <select
+    value={loadLevelFilter}
+    onChange={(e) => setLoadLevelFilter(e.target.value)}
+  >
+    <option value="">ללא סינון</option>
+    <option value="low">נמוך</option>
+    <option value="medium">בינוני</option>
+    <option value="high">גבוה</option>
+  </select>
+</label>
+
           <input
             type="text"
             placeholder="חפש מסעדה..."
@@ -314,6 +349,7 @@ const fetchPlaces = async () => {
                     <h4>{place.name}</h4>
                     <p>דירוג: {place.rating || 'אין'}</p>
                     <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
+                      <p>עומס: {translateLoadLevel(place.load_level)}</p>
                       <button
   onClick={() => {
     console.log('🔘 נלחץ שמור על', place);
