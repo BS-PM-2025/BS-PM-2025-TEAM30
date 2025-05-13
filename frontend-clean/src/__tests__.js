@@ -1,4 +1,6 @@
 // src/__tests__/allTests.test.js
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import MapComponent from '../components/MapComponent';
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -146,5 +148,55 @@ describe('📝 Register Component', () => {
     await waitFor(() =>
       expect(screen.getByText(/אירעה שגיאה בהרשמה/i)).toBeInTheDocument()
     );
+  });
+});
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import MapComponent from '../components/MapComponent';
+
+// מדמה את טעינת המפה
+jest.mock('@react-google-maps/api', () => ({
+  ...jest.requireActual('@react-google-maps/api'),
+  useLoadScript: () => ({ isLoaded: true }),
+  GoogleMap: ({ children }) => <div>{children}</div>,
+  Marker: ({ label }) => <div>{label}</div>,
+  Circle: () => <div>Circle</div>
+}));
+
+describe('🗺️ MapComponent – סינון לפי רמת עומס', () => {
+  beforeEach(() => {
+    // מדמה מיקום GPS קיים
+    global.navigator.geolocation = {
+      getCurrentPosition: (successCallback) =>
+        successCallback({ coords: { latitude: 31.252973, longitude: 34.791462 } })
+    };
+  });
+
+  test('סינון מסעדות לפי עומס – מציג רק את מה שמתאים', async () => {
+    const mockPlaces = [
+      { name: 'Pizza A', lat: 0, lng: 0, rating: 4.2, distance_in_meters: 100, load_level: 'low' },
+      { name: 'Pizza B', lat: 0, lng: 0, rating: 4.2, distance_in_meters: 200, load_level: 'high' },
+      { name: 'Pizza C', lat: 0, lng: 0, rating: 4.2, distance_in_meters: 300, load_level: 'medium' }
+    ];
+
+    // מדמה fetch מוצלח
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve(mockPlaces)
+      })
+    );
+
+    render(<MapComponent />);
+
+    // בוחר "נמוך" בתפריט הסינון
+    const loadSelect = await screen.findByLabelText(/רמת עומס/i);
+    fireEvent.change(loadSelect, { target: { value: 'low' } });
+
+    // מחכה שהמקומות יסוננו
+    await waitFor(() => {
+      expect(screen.getByText('Pizza A')).toBeInTheDocument();
+      expect(screen.queryByText('Pizza B')).not.toBeInTheDocument();
+      expect(screen.queryByText('Pizza C')).not.toBeInTheDocument();
+    });
   });
 });
