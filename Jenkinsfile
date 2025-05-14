@@ -37,19 +37,19 @@ pipeline {
         }
 
         stage('Test Backend') {
-            agent {
-                docker {
-                    image 'python:3.12'
-                }
-            }
-            steps {
-                dir("${BACKEND_DIR}") {
-                    sh '''
-                        . venv/bin/activate
-                        python manage.py test --verbosity 2
-                    '''
-                }
-            }
+    agent {
+        docker {
+            image 'python:3.12'
+        }
+    }
+    steps {
+        sh '''
+            . backend/venv/bin/activate
+            python manage.py test --verbosity 2
+        '''
+    }
+}
+
         }
 
         stage('Install Frontend') {
