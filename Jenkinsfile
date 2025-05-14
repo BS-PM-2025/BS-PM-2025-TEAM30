@@ -43,12 +43,12 @@ pipeline {
                 }
             }
             steps {
-                dir("${BACKEND_DIR}") {
+
                     sh '''
                         . venv/bin/activate
                         python manage.py test --verbosity 2
                     '''
-                }
+
             }
         }
 
