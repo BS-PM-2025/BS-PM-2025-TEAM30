@@ -2,13 +2,8 @@ pipeline {
     agent any
 
     environment {
-        BACKEND_DIR = 'backend'
+        VENV_PATH = 'venv'
         FRONTEND_DIR = 'frontend-clean'
-        VENV_PATH = "${BACKEND_DIR}/venv"
-    }
-
-    options {
-        skipDefaultCheckout(false)
     }
 
     stages {
@@ -25,14 +20,12 @@ pipeline {
                 }
             }
             steps {
-                dir("${BACKEND_DIR}") {
-                    sh '''
-                        python -m venv venv
-                        . venv/bin/activate
-                        pip install --upgrade pip
-                        pip install -r ../requirements.txt
-                    '''
-                }
+                sh '''
+                    python -m venv ${VENV_PATH}
+                    . ${VENV_PATH}/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
             }
         }
 
@@ -43,12 +36,10 @@ pipeline {
                 }
             }
             steps {
-
-                    sh '''
-                        . venv/bin/activate
-                        python manage.py test --verbosity 2
-                    '''
-
+                sh '''
+                    . ${VENV_PATH}/bin/activate
+                    python manage.py test --verbosity 2
+                '''
             }
         }
 
