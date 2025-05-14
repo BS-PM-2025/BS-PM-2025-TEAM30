@@ -39,7 +39,8 @@ pipeline {
                 sh '''
                     . ${VENV_PATH}/bin/activate
                        python manage.py migrate
-                    python manage.py test --verbosity 2
+                       python manage.py test --keepdb --verbosity 2
+
                 '''
             }
         }
