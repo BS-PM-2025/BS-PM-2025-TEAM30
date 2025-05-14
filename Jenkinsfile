@@ -1,30 +1,79 @@
 pipeline {
-    agent none
+    agent any
+
+    environment {
+        BACKEND_DIR = 'backend'
+        FRONTEND_DIR = 'frontend-clean'
+        VENV_PATH = "${BACKEND_DIR}/venv"
+    }
+
+    options {
+        skipDefaultCheckout(false)
+    }
 
     stages {
-        stage('Build') {
-            agent {
-                docker {
-                    image 'python:2-alpine'
-                }
-            }
+        stage('Checkout') {
             steps {
-                sh 'python -m py_compile sources/add2vals.py sources/calc.py || true'
+                checkout scm
             }
         }
 
-        stage('Test') {
+        stage('Install Backend') {
             agent {
                 docker {
-                    image 'qnib/pytest'
+                    image 'python:3.12'
                 }
             }
             steps {
-                sh 'py.test --verbose --junit-xml test-reports/results.xml sources/test_calc.py || true'
+                dir("${BACKEND_DIR}") {
+                    sh '''
+                        python -m venv venv
+                        . venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r ../requirements.txt
+                    '''
+                }
             }
-            post {
-                always {
-                    junit 'test-reports/results.xml'
+        }
+
+        stage('Test Backend') {
+            agent {
+                docker {
+                    image 'python:3.12'
+                }
+            }
+            steps {
+                dir("${BACKEND_DIR}") {
+                    sh '''
+                        . venv/bin/activate
+                        python manage.py test --verbosity 2
+                    '''
+                }
+            }
+        }
+
+        stage('Install Frontend') {
+            agent {
+                docker {
+                    image 'node:20'
+                }
+            }
+            steps {
+                dir("${FRONTEND_DIR}") {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Test Frontend') {
+            agent {
+                docker {
+                    image 'node:20'
+                }
+            }
+            steps {
+                dir("${FRONTEND_DIR}") {
+                    sh 'npm test -- --watchAll=false'
                 }
             }
         }
