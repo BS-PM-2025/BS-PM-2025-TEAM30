@@ -11,7 +11,7 @@
     "axios": "^1.8.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^6.30.0",
+    "react-router-dom": "^7.5.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
@@ -40,11 +40,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.27.2",
-    "@babel/preset-react": "^7.27.1",
     "autoprefixer": "^10.4.21",
-    "babel-jest": "^29.7.0",
-    "identity-obj-proxy": "^3.0.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.4"
   },
