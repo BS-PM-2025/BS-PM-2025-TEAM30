@@ -9,6 +9,45 @@ const mapContainerStyle = {
   height: '400px',
 };
 
+
+const fetchPopularData = async (placeName, callback) => {
+  try {
+    const res = await fetch(`http://localhost:8000/api/load/?name=${encodeURIComponent(placeName)}`);
+    const data = await res.json();
+    if (res.ok) {
+      callback({ ...data, is_fake: false }); // ✅ נתון אמיתי
+    } else {
+      callback({ popular_times: generateFakePopularity(), is_fake: true }); // ✅ פייק
+    }
+  } catch (err) {
+    console.error("שגיאה בשליפת עומס:", err);
+    callback({ popular_times: generateFakePopularity(), is_fake: true }); // ✅ פייק במקרה של שגיאה
+  }
+};
+
+
+const generateFakePopularity = () => {
+  const fakeDay = {
+    day: 1,
+    day_text: 'Monday',
+    popular_times: []
+  };
+
+  for (let hour = 8; hour <= 22; hour++) {
+    const percent = Math.floor(20 + Math.random() * 60);
+    fakeDay.popular_times.push({
+      hour,
+      percentage: percent,
+      title: '',
+      time: `${hour}:00`
+    });
+  }
+
+  return [fakeDay];
+};
+
+
+
 const getTimeBasedPlaceType = () => {
   const hour = new Date().getHours();
   if (hour < 12) return 'cafe';
@@ -77,6 +116,7 @@ const MapComponent = () => {
   const [manualAddress, setManualAddress] = useState('');
   const [destination, setDestination] = useState('');
   const [gpsFailed, setGpsFailed] = useState(false);
+  const [popularityData, setPopularityData] = useState({});
 
 
   const mapRef = useRef(null);
@@ -86,6 +126,7 @@ const MapComponent = () => {
     mapRef.current = map;
     if (location) map.panTo(location);
   };
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -102,6 +143,19 @@ const MapComponent = () => {
 useEffect(() => {
   if (location && (radius || !showCircle)) fetchPlaces();
 }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
+
+useEffect(() => {
+  places.forEach((place) => {
+    if (!popularityData[place.name]) {
+      fetchPopularData(place.name, (data) => {
+        setPopularityData(prev => ({
+          ...prev,
+          [place.name]: data
+        }));
+      });
+    }
+  });
+}, [places]);
 
 const fetchPlaces = async () => {
   try {
@@ -426,6 +480,42 @@ const fetchPlaces = async () => {
                       </button>
 
                     {place.visited && <p className="visited">✅ ביקרת כאן</p>}
+                    <div className="popularity">
+  <p><strong>שעות עומס:</strong></p>
+                      {popularityData[place.name]?.is_fake && (
+  <p style={{ color: 'red', fontSize: '12px' }}>🛑 נתוני עומס מדומים</p>
+)}
+{!popularityData[place.name]?.is_fake && (
+  <p style={{ color: 'green', fontSize: '12px' }}>✅ עומס אמיתי מ-Google</p>
+)}
+
+  {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
+    generateFakePopularity()[0].popular_times
+  ).map((pt, i) => (
+    <div
+      key={i}
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '2px'
+      }}
+    >
+      <span>{pt.hour}:00</span>
+      <div
+        style={{
+          background: '#4caf50',
+          height: '10px',
+          width: `${pt.percentage}%`,
+          margin: '0 5px',
+          flex: 1
+        }}
+      ></div>
+      <span>{pt.percentage}%</span>
+    </div>
+  ))}
+</div>
+
                   </div>
                 ))}
               </div>

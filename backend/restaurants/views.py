@@ -2,6 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import SavedRestaurant
 from .serializers import SavedRestaurantSerializer
+from .utils import fetch_popular_times
+
 
 @api_view(['POST'])
 def save_restaurant(request):
@@ -28,3 +30,15 @@ def get_saved_restaurants(request):
     restaurants = SavedRestaurant.objects.filter(user_email=email)
     serializer = SavedRestaurantSerializer(restaurants, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def get_popular_times_view(request):
+    name = request.GET.get('name')
+    if not name:
+        return Response({"error": "missing name"}, status=400)
+
+    data = fetch_popular_times(name)
+    if not data:
+        return Response({"error": "no data"}, status=404)
+
+    return Response(data)
