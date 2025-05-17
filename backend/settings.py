@@ -98,6 +98,9 @@ DATABASES = {
         },
     }
 }
+DATABASES['default']['TEST'] = {
+    'NAME': 'test_postgres',
+}
 
 
 # Password validation
