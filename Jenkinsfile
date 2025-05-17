@@ -85,27 +85,26 @@ DATABASES = {
             }
         }
 
-        stage('Test Frontend') {
-            agent {
-                docker {
-                    image 'node:20'
-                    args '--user root'
-                }
-            }
-            steps {
-                dir("${FRONTEND_DIR}") {
-                    sh '''
-                        # Skip tests instead of trying to fix them
-                        # This is a temporary solution - in a real project you would fix the tests
-                        echo "console.log('Skipping frontend tests for now. Will be fixed in future PRs.');" > skip-tests.js
-                        node skip-tests.js
-
-                        # Exit with success code to continue the pipeline
-                        exit 0
-                    '''
-                }
-            }
+       stage('Test Frontend') {
+    agent {
+        docker {
+            image 'node:20'
+            args '--user root'
         }
+    }
+    steps {
+        dir("${FRONTEND_DIR}") {
+            sh '''
+                # Set up test environment
+                echo "module.exports = {};" > __mocks__/styleMock.js
+                echo "module.exports = 'test-file-stub';" > __mocks__/fileMock.js
+
+                # Run tests with CI mode
+                CI=true npm test -- --passWithNoTests
+            '''
+        }
+    }
+}
 
         stage('Build Frontend') {
             agent {
