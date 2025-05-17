@@ -28,8 +28,7 @@ pipeline {
                 '''
             }
         }
-
-        stage('Test Backend') {
+stage('Test Backend') {
     agent {
         docker {
             image 'python:3.12'
@@ -37,26 +36,24 @@ pipeline {
     }
     steps {
         sh '''
-             . ${VENV_PATH}/bin/activate
+            . ${VENV_PATH}/bin/activate
 
-            # Clean up any existing test database
-            echo "Attempting to clean up test database..."
-            python -c "from psycopg2 import connect; conn = connect(dbname='postgres', user='postgres', host='db', password='password'); conn.autocommit = True; cur = conn.cursor(); cur.execute('DROP DATABASE IF EXISTS test_postgres;'); conn.close()" || true
+            # Create a temporary test settings file that uses SQLite
+            echo "from backend.settings import *
 
-            echo "Running migrations for Django built-in apps..."
-            python manage.py migrate auth --noinput
-            python manage.py migrate contenttypes --noinput
-            python manage.py migrate admin --noinput
-            python manage.py migrate sessions --noinput
+# Use SQLite for testing instead of PostgreSQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+}" > test_settings.py
 
-            echo "Running makemigrations for custom apps..."
-            python manage.py makemigrations --noinput
+            echo "Running migrations for Django apps..."
+            python manage.py migrate --settings=test_settings
 
-            echo "Applying all migrations..."
-            python manage.py migrate --noinput
-
-            echo "Running tests with a clean database..."
-            python manage.py test --verbosity 2 --noinput --keepd
+            echo "Running tests with SQLite in-memory database..."
+            python manage.py test --settings=test_settings --verbosity 2
         '''
     }
 }
