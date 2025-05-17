@@ -11,35 +11,56 @@ const mapContainerStyle = {
 
 
 const fetchPopularData = async (placeName, callback) => {
-  try {
-    const res = await fetch(`http://localhost:8000/api/load/?name=${encodeURIComponent(placeName)}`);
-    const data = await res.json();
-    if (res.ok) {
-      callback({ ...data, is_fake: false }); // ✅ נתון אמיתי
-    } else {
-      callback({ popular_times: generateFakePopularity(), is_fake: true }); // ✅ פייק
-    }
-  } catch (err) {
-    console.error("שגיאה בשליפת עומס:", err);
-    callback({ popular_times: generateFakePopularity(), is_fake: true }); // ✅ פייק במקרה של שגיאה
-  }
+  // 👇 השבתת Outscraper זמנית כדי לא לבזבז קרדיט
+  //לא למחוק שמתי את זה בנתיים בהערה כדי שלא ייגמרו השימושים !!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // try {
+  //   const res = await fetch(`http://localhost:8000/api/load/?name=${encodeURIComponent(placeName)}`);
+  //   const data = await res.json();
+  //   if (res.ok) {
+  //     callback({ ...data, is_fake: false }); // נתון אמיתי
+  //   } else {
+  //     callback({ popular_times: generateFakePopularity() });
+  //   }
+  // } catch (err) {
+  //   console.error("שגיאה בשליפת עומס:", err);
+  //   callback({ popular_times: generateFakePopularity() }); //
+  // }
+
+  //  שימוש זמני בנתונים מדומים
+  callback({ popular_times: generateBackupPopularity() });
 };
 
 
-const generateFakePopularity = () => {
+
+const generateBackupPopularity = () => {
   const fakeDay = {
     day: 1,
     day_text: 'Monday',
     popular_times: []
   };
 
-  for (let hour = 8; hour <= 22; hour++) {
-    const percent = Math.floor(20 + Math.random() * 60);
+  for (let hour = 6; hour <= 24; hour++) {
+    let percent;
+
+    if (hour < 10) {
+      percent = Math.floor(Math.random() * 5);
+    } else if (hour >= 10 && hour < 12) {
+      percent = Math.floor(5 + Math.random() * 10);
+    } else if (hour >= 12 && hour < 15) {
+      percent = Math.floor(15 + Math.random() * 20);
+    } else if (hour >= 15 && hour < 18) {
+      percent = Math.floor(20 + Math.random() * 30);
+    } else if (hour >= 18 && hour <= 22) {
+      percent = Math.floor(50 + Math.random() * 30);
+    } else {
+      percent = Math.floor(20 + Math.random() * 20);
+    }
+
     fakeDay.popular_times.push({
-      hour,
+      hour: hour === 24 ? 0 : hour,
       percentage: percent,
       title: '',
-      time: `${hour}:00`
+      time: `${hour === 24 ? '00' : hour}:00`
     });
   }
 
@@ -482,41 +503,44 @@ const fetchPlaces = async () => {
                     {place.visited && <p className="visited">✅ ביקרת כאן</p>}
                     <div className="popularity">
   <p><strong>שעות עומס:</strong></p>
-                      {popularityData[place.name]?.is_fake && (
-  <p style={{ color: 'red', fontSize: '12px' }}>🛑 נתוני עומס מדומים</p>
-)}
-{!popularityData[place.name]?.is_fake && (
-  <p style={{ color: 'green', fontSize: '12px' }}>✅ עומס אמיתי מ-Google</p>
-)}
+
+
 
   {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
-    generateFakePopularity()[0].popular_times
+    generateBackupPopularity()[0].popular_times
   ).map((pt, i) => (
     <div
       key={i}
       style={{
+        marginBottom: '6px',
+        fontSize: '13px',
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '2px'
+        gap: '8px'
       }}
     >
-      <span>{pt.hour}:00</span>
-      <div
-        style={{
-          background: '#4caf50',
-          height: '10px',
+      <span style={{ width: '35px', direction: 'ltr' }}>{pt.hour}:00</span>
+      <div style={{
+        background: '#e0e0e0',
+        borderRadius: '4px',
+        overflow: 'hidden',
+        width: '100%',
+        height: '12px'
+      }}>
+        <div style={{
           width: `${pt.percentage}%`,
-          margin: '0 5px',
-          flex: 1
-        }}
-      ></div>
-      <span>{pt.percentage}%</span>
+          backgroundColor:
+            pt.percentage > 70 ? '#d32f2f' :
+            pt.percentage > 40 ? '#fbc02d' :
+            '#4caf50',
+          height: '100%'
+        }}></div>
+      </div>
+      <span style={{ width: '40px', textAlign: 'left' }}>{pt.percentage}%</span>
     </div>
   ))}
 </div>
-
-                  </div>
+</div>
                 ))}
               </div>
             )}
