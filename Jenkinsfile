@@ -38,11 +38,15 @@ pipeline {
             steps {
                 sh '''
                     . ${VENV_PATH}/bin/activate
+
+                    echo "Running makemigrations..."
                     python manage.py makemigrations --noinput
-                    python manage.py migrate --noinput
+
+                    echo "Applying all migrations (including default Django apps)..."
+                    python manage.py migrate --run-syncdb --noinput
+
+                    echo "Running tests..."
                     python manage.py test --verbosity 2 --noinput
-
-
                 '''
             }
         }
