@@ -37,19 +37,26 @@ pipeline {
     }
     steps {
         sh '''
-            . ${VENV_PATH}/bin/activate
+             . ${VENV_PATH}/bin/activate
 
-            echo "Running makemigrations..."
+            # Clean up any existing test database
+            echo "Attempting to clean up test database..."
+            python -c "from psycopg2 import connect; conn = connect(dbname='postgres', user='postgres', host='db', password='password'); conn.autocommit = True; cur = conn.cursor(); cur.execute('DROP DATABASE IF EXISTS test_postgres;'); conn.close()" || true
+
+            echo "Running migrations for Django built-in apps..."
+            python manage.py migrate auth --noinput
+            python manage.py migrate contenttypes --noinput
+            python manage.py migrate admin --noinput
+            python manage.py migrate sessions --noinput
+
+            echo "Running makemigrations for custom apps..."
             python manage.py makemigrations --noinput
 
-            echo "Applying migrations for Django apps (auth, sessions, etc)..."
+            echo "Applying all migrations..."
             python manage.py migrate --noinput
 
-            echo "Syncing apps without migrations (like your custom apps)..."
-            python manage.py migrate --run-syncdb --noinput
-
-            echo "Running tests..."
-            python manage.py test --verbosity 2 --noinput
+            echo "Running tests with a clean database..."
+            python manage.py test --verbosity 2 --noinput --keepd
         '''
     }
 }
