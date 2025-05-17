@@ -5,7 +5,7 @@ import MapComponent from '../components/MapComponent';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
-
+import { fetchPopularData } from '../components/MapComponent';
 import ForgotPassword from '../src/pages/ForgotPassword';
 import MapComponent from "./components/MapComponent";
 import Register from "./pages/Register";
@@ -223,5 +223,56 @@ describe('🗺️ MapComponent – סינון לפי רמת עומס', () => {
       expect(screen.queryByText('Pizza B')).not.toBeInTheDocument();
       expect(screen.queryByText('Pizza C')).not.toBeInTheDocument();
     });
+  });
+});
+// tests/popularTimes.test.js
+
+describe('📡 fetchPopularData', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn(); // נבטיח שכל fetch יהיה מדומה
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  test('מחזיר נתונים אמיתיים עם is_fake=false כשהשרת מחזיר תשובה תקינה', async () => {
+    const mockApiResponse = {
+      popular_times: [
+        {
+          day: 1,
+          day_text: "Monday",
+          popular_times: [
+            { hour: 10, percentage: 30 },
+            { hour: 14, percentage: 60 }
+          ]
+        }
+      ]
+    };
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockApiResponse
+    });
+
+    const callback = jest.fn();
+    await fetchPopularData('Some Restaurant', callback);
+
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
+      popular_times: mockApiResponse.popular_times,
+      is_fake: false
+    }));
+  });
+
+  test('מחזיר is_fake=true כשיש שגיאה מהשרת', async () => {
+    fetch.mockRejectedValueOnce(new Error('Network error'));
+
+    const callback = jest.fn();
+    await fetchPopularData('Some Restaurant', callback);
+
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
+      is_fake: true,
+      popular_times: expect.any(Array)
+    }));
   });
 });
