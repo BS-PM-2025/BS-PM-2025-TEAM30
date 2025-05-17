@@ -28,18 +28,19 @@ pipeline {
                 '''
             }
         }
-stage('Test Backend') {
-    agent {
-        docker {
-            image 'python:3.12'
-        }
-    }
-    steps {
-        sh '''
-            . ${VENV_PATH}/bin/activate
 
-            # Create a temporary test settings file that uses SQLite
-            echo "from backend.settings import *
+        stage('Test Backend') {
+            agent {
+                docker {
+                    image 'python:3.12'
+                }
+            }
+            steps {
+                sh '''
+                    . ${VENV_PATH}/bin/activate
+
+                    # Create a temporary test settings file that uses SQLite
+                    echo "from backend.settings import *
 
 # Use SQLite for testing instead of PostgreSQL
 DATABASES = {
@@ -49,24 +50,30 @@ DATABASES = {
     }
 }" > test_settings.py
 
-            echo "Running migrations for Django apps..."
-            python manage.py migrate --settings=test_settings
+                    echo "Running migrations for Django apps..."
+                    python manage.py migrate --settings=test_settings
 
-            echo "Running tests with SQLite in-memory database..."
-            python manage.py test --settings=test_settings --verbosity 2
-        '''
-    }
-}
+                    echo "Running tests with SQLite in-memory database..."
+                    python manage.py test --settings=test_settings --verbosity 2
+                '''
+            }
+        }
 
         stage('Install Frontend') {
             agent {
                 docker {
                     image 'node:20'
+                    args '-e HOME=/tmp'  // Setting HOME to /tmp to avoid using /.npm cache
                 }
             }
             steps {
                 dir("${FRONTEND_DIR}") {
-                    sh 'npm install'
+                    sh '''
+                        # Create local npm cache directory with correct permissions
+                        mkdir -p .npm-cache
+                        npm config set cache $(pwd)/.npm-cache --global
+                        npm install
+                    '''
                 }
             }
         }
@@ -75,11 +82,17 @@ DATABASES = {
             agent {
                 docker {
                     image 'node:20'
+                    args '-e HOME=/tmp'  // Setting HOME to /tmp to avoid using /.npm cache
                 }
             }
             steps {
                 dir("${FRONTEND_DIR}") {
-                    sh 'npm test -- --watchAll=false'
+                    sh '''
+                        # Use the same local npm cache
+                        mkdir -p .npm-cache
+                        npm config set cache $(pwd)/.npm-cache --global
+                        npm test -- --watchAll=false
+                    '''
                 }
             }
         }
