@@ -40,12 +40,8 @@ pipeline {
                     . ${VENV_PATH}/bin/activate
                     python manage.py makemigrations --noinput
                     python manage.py migrate --noinput
+                    python manage.py test --verbosity 2 --noinput --keepdb
 
-
-                    # Drop existing test DB if exists
-                    psql -h $DB_HOST -U $DB_USER -d postgres -c "DROP DATABASE IF EXISTS test_postgres WITH (FORCE);"
-
-                       python manage.py test  --verbosity 2 --noinput
 
                 '''
             }
