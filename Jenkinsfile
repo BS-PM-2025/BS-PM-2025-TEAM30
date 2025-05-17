@@ -41,6 +41,10 @@ pipeline {
                     python manage.py makemigrations --noinput
                     python manage.py migrate --noinput
 
+
+                    # Drop existing test DB if exists
+                    psql -h $DB_HOST -U $DB_USER -d postgres -c "DROP DATABASE IF EXISTS test_postgres WITH (FORCE);"
+
                        python manage.py test  --verbosity 2 --noinput
 
                 '''
