@@ -63,16 +63,17 @@ DATABASES = {
             agent {
                 docker {
                     image 'node:20'
-                    args '-e HOME=/tmp'  // Setting HOME to /tmp to avoid using /.npm cache
+                    args '--user root' // Run as root to avoid permission issues
                 }
             }
             steps {
                 dir("${FRONTEND_DIR}") {
                     sh '''
-                        # Create local npm cache directory with correct permissions
-                        mkdir -p .npm-cache
-                        npm config set cache $(pwd)/.npm-cache --global
-                        npm install
+                        # Create a local .npmrc file
+                        echo "cache=./.npm-cache" > .npmrc
+
+                        # Install dependencies
+                        npm install --no-fund --no-audit
                     '''
                 }
             }
@@ -82,15 +83,16 @@ DATABASES = {
             agent {
                 docker {
                     image 'node:20'
-                    args '-e HOME=/tmp'  // Setting HOME to /tmp to avoid using /.npm cache
+                    args '--user root' // Run as root to avoid permission issues
                 }
             }
             steps {
                 dir("${FRONTEND_DIR}") {
                     sh '''
-                        # Use the same local npm cache
-                        mkdir -p .npm-cache
-                        npm config set cache $(pwd)/.npm-cache --global
+                        # Use the same local .npmrc configuration
+                        echo "cache=./.npm-cache" > .npmrc
+
+                        # Run tests
                         npm test -- --watchAll=false
                     '''
                 }
