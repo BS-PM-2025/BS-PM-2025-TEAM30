@@ -38,8 +38,10 @@ pipeline {
             steps {
                 sh '''
                     . ${VENV_PATH}/bin/activate
-                       python manage.py migrate
-                       python manage.py test  --verbosity 2 --noinput  --migrate
+                    python manage.py makemigrations --noinput
+                    python manage.py migrate --noinput
+
+                       python manage.py test  --verbosity 2 --noinput
 
                 '''
             }
