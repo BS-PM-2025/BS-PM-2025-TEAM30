@@ -48,7 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # חובה לשים ראשון כדי שיתפוס לפני הכל
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,8 +56,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # ⬅ להוסיף ראשון
-    'django.middleware.common.CommonMiddleware',  # ⬅ אפשר להוסיף אחרי זה
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 
@@ -80,7 +80,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
-AUTH_USER_MODEL = 'user.User'  # פורמט: 'שם_אפליקציה.שם_מודל'
+AUTH_USER_MODEL = 'user.User'
 
 
 # Database
@@ -145,7 +145,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'idantegave777@gmail.com'  # כאן תכניס את כתובת הג'ימייל שלך
-EMAIL_HOST_PASSWORD = 'yeyj pcjd kpok minx'  # הסיסמה שקיבלת מהשלב הקודם
+EMAIL_HOST_USER = 'idantegave777@gmail.com'
+EMAIL_HOST_PASSWORD = 'yeyj pcjd kpok minx'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 CORS_ALLOW_ALL_ORIGINS = True

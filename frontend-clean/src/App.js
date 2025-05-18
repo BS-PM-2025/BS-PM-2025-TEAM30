@@ -6,8 +6,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import DetectRestaurant from './pages/DetectRestaurant';
-import PendingRestaurantsPage from './pages/PendingRestaurantsPage'; // ✅ ייבוא הדף החדש
-
+import PendingRestaurantsPage from './pages/PendingRestaurantsPage';
 function App() {
   return (
     <Router>

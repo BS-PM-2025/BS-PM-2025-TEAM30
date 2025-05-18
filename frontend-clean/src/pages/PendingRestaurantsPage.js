@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 const PendingRestaurantsPage = () => {
   const [pendingRestaurants, setPendingRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:8000/api/restaurants/pending/")
@@ -29,8 +30,16 @@ const PendingRestaurantsPage = () => {
 
       if (!res.ok) throw new Error(`${action} failed`);
 
-      // מסיר את המסעדה מהתצוגה
       setPendingRestaurants(prev => prev.filter(r => r.id !== id));
+
+      if (action === "approve") {
+        setStatusMessage("✅ המסעדה אושרה בהצלחה!");
+      } else {
+        setStatusMessage("❌ המסעדה נדחתה ונמחקה.");
+      }
+
+      // הסתרת ההודעה אחרי 3 שניות
+      setTimeout(() => setStatusMessage(""), 3000);
     } catch (err) {
       console.error("שגיאה בפעולה:", err);
       alert("פעולה נכשלה. נסה שוב.");
@@ -46,6 +55,13 @@ const PendingRestaurantsPage = () => {
   return (
     <div style={{ padding: '30px', backgroundColor: '#e4f1f9', minHeight: '100vh' }}>
       <h2 style={{ textAlign: 'right' }}>מסעדות ממתינות לאישור</h2>
+
+      {statusMessage && (
+        <div style={{ marginBottom: '20px', color: 'green', fontWeight: 'bold', textAlign: 'center' }}>
+          {statusMessage}
+        </div>
+      )}
+
       <table style={{ width: '100%', direction: 'rtl', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
@@ -63,10 +79,14 @@ const PendingRestaurantsPage = () => {
               <td>{r.address}</td>
               <td>{r.phone}</td>
               <td>
-                <button onClick={() => handleApprove(r.id)} style={{ backgroundColor: '#4CAF50', color: 'white' }}>✅ אשר</button>
+                <button onClick={() => handleApprove(r.id)} style={{ backgroundColor: '#4CAF50', color: 'white' }}>
+                  ✅ אשר
+                </button>
               </td>
               <td>
-                <button onClick={() => handleReject(r.id)} style={{ backgroundColor: '#f44336', color: 'white' }}>❌ סרב</button>
+                <button onClick={() => handleReject(r.id)} style={{ backgroundColor: '#f44336', color: 'white' }}>
+                  ❌ סרב
+                </button>
               </td>
             </tr>
           ))}

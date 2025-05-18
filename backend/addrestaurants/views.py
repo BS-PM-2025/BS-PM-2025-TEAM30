@@ -4,14 +4,44 @@ from rest_framework import status
 from .models import Restaurant
 from .serializers import RestaurantSerializer
 from math import radians, cos, sin, asin, sqrt
+import requests
+from django.conf import settings
 
 
+# חישוב מרחק לפי נוסחת האברסין
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
     a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     return R * 2 * asin(sqrt(a))
+
+
+# המרה של כתובת לקו אורך ורוחב דרך גוגל
+def get_lat_lon_from_address(address):
+    url = f'https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={settings.GOOGLE_API_KEY}'
+    response = requests.get(url)
+    data = response.json()
+    if data['status'] == 'OK':
+        location = data['results'][0]['geometry']['location']
+        return location['lat'], location['lng']
+    return None, None
+
+
+@api_view(['POST'])
+def create_restaurant(request):
+    data = request.data.copy()
+
+    # חישוב קו רוחב ואורך לפי כתובת
+    lat, lon = get_lat_lon_from_address(data.get('address', ''))
+    data['latitude'] = lat
+    data['longitude'] = lon
+
+    serializer = RestaurantSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
 
 
 @api_view(['POST'])
@@ -65,14 +95,5 @@ def approve_restaurant(request):
         else:  # reject
             restaurant.delete()
             return Response({'success': 'Restaurant rejected and deleted successfully'})
-    except Restaurant.DoesNotExist:
-        return Response({'error': 'Restaurant not found'}, status=status.HTTP_404_NOT_FOUND)
-
-@api_view(['POST'])
-def reject_restaurant(request, pk):
-    try:
-        restaurant = Restaurant.objects.get(id=pk)
-        restaurant.delete()
-        return Response({'success': 'Restaurant rejected and deleted successfully'})
     except Restaurant.DoesNotExist:
         return Response({'error': 'Restaurant not found'}, status=status.HTTP_404_NOT_FOUND)
