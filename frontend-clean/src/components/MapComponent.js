@@ -19,11 +19,11 @@ const fetchPopularData = async (placeName, callback) => {
   //   if (res.ok) {
   //     callback({ ...data, is_fake: false }); // נתון אמיתי
   //   } else {
-  //     callback({ popular_times: generateFakePopularity() });
+  //     callback({ popular_times: generateBackupPopularity() });
   //   }
   // } catch (err) {
   //   console.error("שגיאה בשליפת עומס:", err);
-  //   callback({ popular_times: generateFakePopularity() }); //
+  //   callback({ popular_times: generateBackupPopularity() }); //
   // }
 
   //  שימוש זמני בנתונים מדומים
