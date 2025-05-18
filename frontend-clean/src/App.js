@@ -6,6 +6,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import DetectRestaurant from './pages/DetectRestaurant';
+import SavedRestaurants from './pages/SavedRestaurants';
+
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path="/restaurants" element={<MapComponent />} />
         <Route path="/addrestaurant" element={<AddRestaurantPage />} />
         <Route path="/detect" element={<DetectRestaurant />} />
+        <Route path="/saved" element={<SavedRestaurants />} />
+
       </Routes>
     </Router>
   );

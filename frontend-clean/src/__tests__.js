@@ -1,11 +1,19 @@
 // src/__tests__/allTests.test.js
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import MapComponent from '../components/MapComponent';
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
+import { fetchPopularData } from '../components/MapComponent';
+import ForgotPassword from '../src/pages/ForgotPassword';
+import MapComponent from "./components/MapComponent";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import { markAsVisited } from '../src/components/MapComponent';
+import {removeVisit} from '../src/components/MapComponent';
+import * as test from "node:test";
 
-// רכיבים לבדיקה
-import ForgotPassword from '../pages/ForgotPassword';
 
 jest.mock('axios'); // נוודא שכל הבקשות לשרת מדומות
 
@@ -146,5 +154,125 @@ describe('📝 Register Component', () => {
     await waitFor(() =>
       expect(screen.getByText(/אירעה שגיאה בהרשמה/i)).toBeInTheDocument()
     );
+  });
+
+  test('שולח בקשת ביקור לשרת', async () => {
+    axios.post.mockResolvedValue({ data: { message: 'Visit saved!' } });
+    await markAsVisited({
+      name: 'Test Restaurant',
+      lat: 32.1,
+      lng: 34.8,
+      rating: 4.7
+    });
+    expect(axios.post).toHaveBeenCalledWith(
+      'http://localhost:8000/api/visit/',
+      expect.objectContaining({
+        email: expect.any(String),
+        restaurant_name: 'Test Restaurant',
+      }),
+      expect.anything()
+    );
+  });
+
+});
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import MapComponent from '../components/MapComponent';
+
+// מדמה את טעינת המפה
+jest.mock('@react-google-maps/api', () => ({
+  ...jest.requireActual('@react-google-maps/api'),
+  useLoadScript: () => ({ isLoaded: true }),
+  GoogleMap: ({ children }) => <div>{children}</div>,
+  Marker: ({ label }) => <div>{label}</div>,
+  Circle: () => <div>Circle</div>
+}));
+
+describe('🗺️ MapComponent – סינון לפי רמת עומס', () => {
+  beforeEach(() => {
+    // מדמה מיקום GPS קיים
+    global.navigator.geolocation = {
+      getCurrentPosition: (successCallback) =>
+        successCallback({ coords: { latitude: 31.252973, longitude: 34.791462 } })
+    };
+  });
+
+  test('סינון מסעדות לפי עומס – מציג רק את מה שמתאים', async () => {
+    const mockPlaces = [
+      { name: 'Pizza A', lat: 0, lng: 0, rating: 4.2, distance_in_meters: 100, load_level: 'low' },
+      { name: 'Pizza B', lat: 0, lng: 0, rating: 4.2, distance_in_meters: 200, load_level: 'high' },
+      { name: 'Pizza C', lat: 0, lng: 0, rating: 4.2, distance_in_meters: 300, load_level: 'medium' }
+    ];
+
+    // מדמה fetch מוצלח
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve(mockPlaces)
+      })
+    );
+
+    render(<MapComponent />);
+
+    // בוחר "נמוך" בתפריט הסינון
+    const loadSelect = await screen.findByLabelText(/רמת עומס/i);
+    fireEvent.change(loadSelect, { target: { value: 'low' } });
+
+    // מחכה שהמקומות יסוננו
+    await waitFor(() => {
+      expect(screen.getByText('Pizza A')).toBeInTheDocument();
+      expect(screen.queryByText('Pizza B')).not.toBeInTheDocument();
+      expect(screen.queryByText('Pizza C')).not.toBeInTheDocument();
+    });
+  });
+});
+// tests/popularTimes.test.js
+
+describe('📡 fetchPopularData', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn(); // נבטיח שכל fetch יהיה מדומה
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  test('מחזיר נתונים אמיתיים עם is_fake=false כשהשרת מחזיר תשובה תקינה', async () => {
+    const mockApiResponse = {
+      popular_times: [
+        {
+          day: 1,
+          day_text: "Monday",
+          popular_times: [
+            { hour: 10, percentage: 30 },
+            { hour: 14, percentage: 60 }
+          ]
+        }
+      ]
+    };
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockApiResponse
+    });
+
+    const callback = jest.fn();
+    await fetchPopularData('Some Restaurant', callback);
+
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
+      popular_times: mockApiResponse.popular_times,
+      is_fake: false
+    }));
+  });
+
+  test('מחזיר is_fake=true כשיש שגיאה מהשרת', async () => {
+    fetch.mockRejectedValueOnce(new Error('Network error'));
+
+    const callback = jest.fn();
+    await fetchPopularData('Some Restaurant', callback);
+
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
+      is_fake: true,
+      popular_times: expect.any(Array)
+    }));
   });
 });
