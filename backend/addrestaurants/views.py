@@ -3,12 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Restaurant
 from .serializers import RestaurantSerializer
-from math import radians, cos, sin, asin, sqrt
 import requests
+from math import radians, cos, sin, asin, sqrt
 from django.conf import settings
 
-
-# חישוב מרחק לפי נוסחת האברסין
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = radians(lat2 - lat1)
@@ -16,33 +14,18 @@ def haversine(lat1, lon1, lat2, lon2):
     a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     return R * 2 * asin(sqrt(a))
 
-
-# המרה של כתובת לקו אורך ורוחב דרך גוגל
-def get_lat_lon_from_address(address):
-    url = f'https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={settings.GOOGLE_API_KEY}'
-    response = requests.get(url)
-    data = response.json()
-    if data['status'] == 'OK':
-        location = data['results'][0]['geometry']['location']
-        return location['lat'], location['lng']
+def get_lat_long_from_address(address):
+    key = settings.GOOGLE_MAPS_API_KEY
+    response = requests.get(
+        "https://maps.googleapis.com/maps/api/geocode/json",
+        params={"address": address, "key": key}
+    )
+    if response.status_code == 200:
+        data = response.json()
+        if data["results"]:
+            location = data["results"][0]["geometry"]["location"]
+            return location["lat"], location["lng"]
     return None, None
-
-
-@api_view(['POST'])
-def create_restaurant(request):
-    data = request.data.copy()
-
-    # חישוב קו רוחב ואורך לפי כתובת
-    lat, lon = get_lat_lon_from_address(data.get('address', ''))
-    data['latitude'] = lat
-    data['longitude'] = lon
-
-    serializer = RestaurantSerializer(data=data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
-
 
 @api_view(['POST'])
 def detect_restaurant(request):
@@ -71,12 +54,10 @@ def detect_restaurant(request):
 
     return Response({'error': 'יש לשלוח שם מסעדה או מיקום'}, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['GET'])
 def pending_restaurants(request):
     pending = Restaurant.objects.filter(is_approved=False)
     return Response(RestaurantSerializer(pending, many=True).data)
-
 
 @api_view(['POST'])
 def approve_restaurant(request):
@@ -92,8 +73,27 @@ def approve_restaurant(request):
             restaurant.is_approved = True
             restaurant.save()
             return Response({'success': 'Restaurant approved successfully'})
-        else:  # reject
+        else:
             restaurant.delete()
             return Response({'success': 'Restaurant rejected and deleted successfully'})
     except Restaurant.DoesNotExist:
         return Response({'error': 'Restaurant not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+def create_restaurant(request):
+    data = request.data.copy()
+    address = data.get('address')
+
+    if address:
+        lat, lng = get_lat_long_from_address(address)
+        if lat and lng:
+            data['latitude'] = lat
+            data['longitude'] = lng
+        else:
+            return Response({'error': 'לא הצלחנו לקבל קואורדינטות מהכתובת'}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = RestaurantSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

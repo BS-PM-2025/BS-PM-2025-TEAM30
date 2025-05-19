@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'backend.user',
     'rest_framework',
     'backend.restaurants',
+    'backend.addrestaurants',
     'corsheaders',
 ]
 
