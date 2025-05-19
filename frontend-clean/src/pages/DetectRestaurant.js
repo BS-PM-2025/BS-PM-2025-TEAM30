@@ -79,8 +79,8 @@ const DetectRestaurant = () => {
     >
       <div className="detect-box">
         <h2 className="detect-title">📍 זיהוי מסעדה לפי מיקום או שם</h2>
-        <div style={{ padding: "20px" }}>
-          <h2>📍 זיהוי מסעדה לפי מיקום או מזהה</h2>
+    <div style={{ padding: "20px" }}>
+      <h2>📍 זיהוי מסעדה לפי מיקום או מזהה</h2>
 
           <div className="detect-buttons">
             <button onClick={detectByLocation}>זהה לפי מיקום</button>

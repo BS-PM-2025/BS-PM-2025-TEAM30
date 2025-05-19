@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Restaurant(models.Model):
     name = models.CharField(max_length=100)
     address = models.TextField()
@@ -11,9 +10,9 @@ class Restaurant(models.Model):
     website = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     is_promoted = models.BooleanField(default=False)
-
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    is_approved = models.BooleanField(default=False)
 
     is_approved = models.BooleanField(default=False)
 

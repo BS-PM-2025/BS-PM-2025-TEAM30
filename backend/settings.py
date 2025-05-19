@@ -30,7 +30,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
-REACT_APP_GOOGLE_MAPS_API_KEY='AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8'
+GOOGLE_MAPS_API_KEY = 'AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -55,8 +55,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # ⬅ להוסיף ראשון
-    'django.middleware.common.CommonMiddleware',  # ⬅ אפשר להוסיף אחרי זה
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 
@@ -79,7 +79,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
-AUTH_USER_MODEL = 'user.User'  # פורמט: 'שם_אפליקציה.שם_מודל'
+AUTH_USER_MODEL = 'user.User'
 
 
 # Database

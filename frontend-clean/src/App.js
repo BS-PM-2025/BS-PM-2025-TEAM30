@@ -6,27 +6,26 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import DetectRestaurant from './pages/DetectRestaurant';
+import PendingRestaurantsPage from './pages/PendingRestaurantsPage';
 import SavedRestaurants from './pages/SavedRestaurants';
-
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/restaurants" element={<MapComponent />} />
         <Route path="/addrestaurant" element={<AddRestaurantPage />} />
         <Route path="/detect" element={<DetectRestaurant />} />
+        <Route path="/pending" element={<PendingRestaurantsPage />} />
         <Route path="/saved" element={<SavedRestaurants />} />
-
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
