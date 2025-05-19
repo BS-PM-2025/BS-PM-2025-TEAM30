@@ -81,7 +81,7 @@ def pending_restaurants(request):
 @api_view(['POST'])
 def approve_restaurant(request):
     restaurant_id = request.data.get('id')
-    action = request.data.get('action')  # 'approve' or 'reject'
+    action = request.data.get('action')
 
     if not restaurant_id or action not in ['approve', 'reject']:
         return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
