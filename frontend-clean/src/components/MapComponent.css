@@ -280,3 +280,93 @@ body {
 .card button:hover {
   background-color: #64b5f6;
 }
+
+.restaurant-recommendation {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 999;
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  direction: rtl;
+  animation: slide-down 0.5s ease;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.recommendation-header h3 {
+  margin: 0;
+  color: #2196f3;
+}
+
+.close-recommendation {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #999;
+}
+
+.close-recommendation:hover {
+  color: #333;
+}
+
+.recommendation-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 18px;
+}
+
+.recommendation-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.visit-recommendation {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.visit-recommendation:hover {
+  background-color: #388e3c;
+}
+
+.save-recommendation {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-recommendation:hover {
+  background-color: #1976d2;
+}

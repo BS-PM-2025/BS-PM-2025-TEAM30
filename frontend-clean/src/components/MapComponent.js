@@ -382,39 +382,73 @@ const fetchPlaces = async () => {
   }
 
   return (
-    <div className="container">
-      <header className="header">
-        <h1 className="logo">🍴 RouteBite</h1>
-        <div className="header-buttons">
-          {isLoggedIn ? (
+  <div className="container">
+    {/* התחלת קוד ההתראה */}
+    {recommendedRestaurant && showRecommendation && (
+      <div className="restaurant-recommendation">
+        <div className="recommendation-header">
+          <h3>🍽️ מומלץ עכשיו!</h3>
+          <button
+            onClick={() => setShowRecommendation(false)}
+            className="close-recommendation"
+          >
+            ×
+          </button>
+        </div>
+        <p className="recommendation-title">{recommendedRestaurant.name}</p>
+        <p>דירוג: {recommendedRestaurant.rating || 'אין דירוג'} ⭐</p>
+        <p>מרחק: {Math.round(recommendedRestaurant.distance_in_meters)} מטר</p>
+        <p>רמת עומס: {translateLoadLevel(recommendedRestaurant.load_level)}</p>
+        <div className="recommendation-actions">
+          <button
+            onClick={() => markAsVisited(recommendedRestaurant)}
+            className="visit-recommendation"
+          >
+            ביקרתי כאן
+          </button>
+          <button
+            onClick={() => handleSave(recommendedRestaurant)}
+            className="save-recommendation"
+          >
+            שמור מסעדה
+          </button>
+        </div>
+      </div>
+    )}
+    {/* סוף קוד ההתראה */}
+
+    <header className="header">
+      <h1 className="logo">🍴 RouteBite</h1>
+      <div className="header-buttons">
+        {isLoggedIn ? (
+          <button
+            className="login-button"
+            onClick={() => {
+              localStorage.removeItem('userEmail');
+              setIsLoggedIn(false);
+              window.location.reload();
+            }}
+          >
+            התנתק
+          </button>
+        ) : (
+          <div className="auth-buttons">
             <button
               className="login-button"
-              onClick={() => {
-                localStorage.removeItem('userEmail');
-                setIsLoggedIn(false);
-                window.location.reload();
-              }}
+              onClick={() => window.location.href = '/login'}
             >
-              התנתק
+              התחברות
             </button>
-          ) : (
-            <div className="auth-buttons">
-              <button
-                className="login-button"
-                onClick={() => window.location.href = '/login'}
-              >
-                התחברות
-              </button>
-              <button
-                className="register-button"
-                onClick={() => window.location.href = '/register'}
-              >
-                הרשמה
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
+            <button
+              className="register-button"
+              onClick={() => window.location.href = '/register'}
+            >
+              הרשמה
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
 
       {showLoginMessage && (
         <div className="login-message">

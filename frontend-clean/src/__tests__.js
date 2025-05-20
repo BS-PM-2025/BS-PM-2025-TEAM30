@@ -548,3 +548,289 @@ describe('🌍 אינטגרציה של מיקום ומפה', () => {
     });
   });
 });
+describe('🍽️ בדיקת רכיב המלצת מסעדה', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorageMock.clear();
+
+    // מוק לתאריך קבוע כדי לבדוק המלצות מבוססות שעה
+    jest.spyOn(global, 'Date').mockImplementation(() => ({
+      getHours: () => 12,  // קובע שעה קבועה (צהריים)
+      getTime: () => 1621500000000,
+      toISOString: () => '2021-05-20T12:00:00.000Z'
+    }));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('מציג התראת המלצת מסעדה כאשר יש מסעדות זמינות', async () => {
+    // מדמה משתמש מחובר
+    window.localStorage.setItem('userEmail', 'test@example.com');
+
+    // מדמה תשובה מהשרת עם מסעדות
+    global.fetch.mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve([
+        {
+          name: 'מסעדה מומלצת',
+          rating: 4.8,
+          lat: 32.1,
+          lng: 34.8,
+          distance_in_meters: 300,
+          load_level: 'medium',
+          visited: false
+        },
+        {
+          name: 'מסעדה אחרת',
+          rating: 4.2,
+          lat: 32.15,
+          lng: 34.85,
+          distance_in_meters: 600,
+          load_level: 'low',
+          visited: false
+        }
+      ])
+    }));
+
+    render(
+      <BrowserRouter>
+        <MapComponent />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      // בדיקה שהמלצת המסעדה מוצגת
+      expect(screen.getByText('מומלץ עכשיו!')).toBeInTheDocument();
+      expect(screen.getByText('מסעדה מומלצת')).toBeInTheDocument();
+    });
+  });
+
+  test('אפשר לסגור את התראת המלצת המסעדה', async () => {
+    // מדמה תשובה מהשרת עם מסעדות
+    global.fetch.mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve([
+        {
+          name: 'מסעדה מומלצת',
+          rating: 4.8,
+          lat: 32.1,
+          lng: 34.8,
+          distance_in_meters: 300,
+          load_level: 'medium'
+        }
+      ])
+    }));
+
+    render(
+      <BrowserRouter>
+        <MapComponent />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      // בדיקה שההתראה מוצגת
+      expect(screen.getByText('מומלץ עכשיו!')).toBeInTheDocument();
+
+      // מוצא את כפתור הסגירה × ולוחץ עליו
+      const closeButton = screen.getByText('×');
+      fireEvent.click(closeButton);
+
+      // בדיקה שההתראה נסגרה
+      expect(screen.queryByText('מומלץ עכשיו!')).not.toBeInTheDocument();
+    });
+  });
+
+  test('המלצת המסעדה מסננת לפי שעה נוכחית ודירוג', async () => {
+    // מחליף את המוק של Date לשעות שונות לבדיקת סינון
+
+    // מדמה שעת בוקר (9:00)
+    jest.spyOn(global, 'Date').mockImplementation(() => ({
+      getHours: () => 9,
+      getTime: () => 1621500000000,
+      toISOString: () => '2021-05-20T09:00:00.000Z'
+    }));
+
+    // מדמה תשובה מהשרת עם מסעדות שונות
+    global.fetch.mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve([
+        {
+          name: 'קפה בוקר טוב',
+          rating: 4.3,
+          lat: 32.1,
+          lng: 34.8,
+          distance_in_meters: 200,
+          load_level: 'low'
+        },
+        {
+          name: 'מסעדת צהריים',
+          rating: 4.5,
+          lat: 32.15,
+          lng: 34.85,
+          distance_in_meters: 400,
+          load_level: 'medium'
+        },
+        {
+          name: 'בר לילה',
+          rating: 4.8,
+          lat: 32.12,
+          lng: 34.83,
+          distance_in_meters: 300,
+          load_level: 'high'
+        }
+      ])
+    }));
+
+    render(
+      <BrowserRouter>
+        <MapComponent />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      // בדיקה שקפה בוקר מומלץ בשעות הבוקר
+      expect(screen.getByText('קפה בוקר טוב')).toBeInTheDocument();
+    });
+
+    // סידור מחדש לבדיקת שעות צהריים
+    jest.clearAllMocks();
+
+    // מדמה שעת צהריים (14:00)
+    jest.spyOn(global, 'Date').mockImplementation(() => ({
+      getHours: () => 14,
+      getTime: () => 1621500000000,
+      toISOString: () => '2021-05-20T14:00:00.000Z'
+    }));
+
+    // חוזר על אותה בדיקה עם שעה שונה
+    global.fetch.mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve([
+        {
+          name: 'קפה בוקר טוב',
+          rating: 4.3,
+          lat: 32.1,
+          lng: 34.8,
+          distance_in_meters: 200,
+          load_level: 'low'
+        },
+        {
+          name: 'מסעדת צהריים',
+          rating: 4.5,
+          lat: 32.15,
+          lng: 34.85,
+          distance_in_meters: 400,
+          load_level: 'medium'
+        },
+        {
+          name: 'בר לילה',
+          rating: 4.8,
+          lat: 32.12,
+          lng: 34.83,
+          distance_in_meters: 300,
+          load_level: 'high'
+        }
+      ])
+    }));
+
+    render(
+      <BrowserRouter>
+        <MapComponent />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      // בדיקה שמסעדת צהריים מומלצת בשעות הצהריים
+      expect(screen.getByText('מסעדת צהריים')).toBeInTheDocument();
+    });
+  });
+
+  test('כפתורי המלצת המסעדה מפעילים בקשות מתאימות', async () => {
+    // מדמה משתמש מחובר
+    window.localStorage.setItem('userEmail', 'test@example.com');
+
+    // מדמה תשובה מהשרת
+    global.fetch.mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve([
+        {
+          name: 'מסעדה מומלצת',
+          rating: 4.8,
+          lat: 32.1,
+          lng: 34.8,
+          distance_in_meters: 300,
+          load_level: 'medium'
+        }
+      ])
+    })).mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ message: 'נשמר!' })
+    }));
+
+    render(
+      <BrowserRouter>
+        <MapComponent />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      // מוצא את כפתור "ביקרתי כאן" בהמלצה ולוחץ עליו
+      const visitButton = screen.getAllByText('ביקרתי כאן')[0]; // הראשון מכל הכפתורים עם הטקסט הזה
+      fireEvent.click(visitButton);
+
+      // בדיקה שנשלחה בקשת visit לשרת
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:8000/api/visit/',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.any(Object),
+          body: expect.stringContaining('מסעדה מומלצת')
+        })
+      );
+    });
+
+    // איפוס הקריאות ובדיקת כפתור "שמור מסעדה"
+    jest.clearAllMocks();
+
+    global.fetch.mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve([
+        {
+          name: 'מסעדה מומלצת',
+          rating: 4.8,
+          lat: 32.1,
+          lng: 34.8,
+          distance_in_meters: 300,
+          load_level: 'medium'
+        }
+      ])
+    })).mockImplementationOnce(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ message: 'נשמר' })
+    }));
+
+    render(
+      <BrowserRouter>
+        <MapComponent />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      // מוצא את כפתור "שמור מסעדה" בהמלצה ולוחץ עליו
+      const saveButton = screen.getAllByText(/שמור מסעדה|שמור כתובת/)[0];
+      fireEvent.click(saveButton);
+
+      // בדיקה שנשלחה בקשת save לשרת
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:8000/api/save-restaurant/',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.any(Object),
+          body: expect.stringContaining('מסעדה מומלצת')
+        })
+      );
+    });
+  });
+});
