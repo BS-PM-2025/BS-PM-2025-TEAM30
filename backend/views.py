@@ -71,7 +71,7 @@ def nearby_restaurants(request):
             "location": f"{lat},{lng}",
             "radius": 3000,
             "type": place_type,
-            "key": settings.GOOGLE_MAPS_API_KEY
+            "key": settings.REACT_APP_GOOGLE_MAPS_API_KEY
         }
 
         if search:

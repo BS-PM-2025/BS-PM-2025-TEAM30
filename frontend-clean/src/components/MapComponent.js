@@ -112,8 +112,6 @@ const MapComponent = () => {
   const [popularityData, setPopularityData] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
-  const [recommendedRestaurant, setRecommendedRestaurant] = useState(null);
-  const [showRecommendation, setShowRecommendation] = useState(true);
 
 
   const mapRef = useRef(null);
@@ -156,50 +154,6 @@ const MapComponent = () => {
     if (location) map.panTo(location);
   };
 
-  const findBestRestaurantForCurrentTime = (restaurants) => {
-    if (!restaurants || restaurants.length === 0) return null;
-
-    // מיון המסעדות לפי דירוג (מהגבוה לנמוך)
-    const sortedByRating = [...restaurants].sort((a, b) => {
-      // אם אין דירוג, הדירוג יהיה 0
-      const ratingA = a.rating || 0;
-      const ratingB = b.rating || 0;
-      return ratingB - ratingA;
-    });
-
-    const currentHour = new Date().getHours();
-
-    // פילטור לפי סוג מסעדה מתאים לשעה
-    let bestMatch = null;
-
-    // בוקר: בתי קפה (עד 12)
-    if (currentHour < 12) {
-      bestMatch = sortedByRating.find(r =>
-        r.name.includes('קפה') ||
-        r.name.toLowerCase().includes('cafe') ||
-        r.name.toLowerCase().includes('coffee')
-      );
-    }
-    // צהריים: מסעדות רגילות (12-18)
-    else if (currentHour >= 12 && currentHour < 18) {
-      bestMatch = sortedByRating.find(r =>
-        !r.name.toLowerCase().includes('bar') &&
-        !r.name.toLowerCase().includes('פאב')
-      );
-    }
-    // ערב: ברים ומסעדות ערב (18 ומעלה)
-    else {
-      bestMatch = sortedByRating.find(r =>
-        r.name.toLowerCase().includes('bar') ||
-        r.name.toLowerCase().includes('פאב') ||
-        r.rating >= 4.0
-      );
-    }
-
-    // אם לא נמצאה התאמה, נחזיר את המסעדה עם הדירוג הגבוה ביותר
-    return bestMatch || sortedByRating[0];
-  };
-
 
   useEffect(() => {
     // בדיקה אם המשתמש מחובר
@@ -234,29 +188,22 @@ const MapComponent = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (places && places.length > 0) {
-      const recommended = findBestRestaurantForCurrentTime(places);
-      setRecommendedRestaurant(recommended);
+useEffect(() => {
+  if (location && (radius || !showCircle)) fetchPlaces();
+}, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
+
+useEffect(() => {
+  places.forEach((place) => {
+    if (!popularityData[place.name]) {
+      fetchPopularData(place.name, (data) => {
+        setPopularityData(prev => ({
+          ...prev,
+          [place.name]: data
+        }));
+      });
     }
-  }, [places]);
-
-  useEffect(() => {
-    if (location && (radius || !showCircle)) fetchPlaces();
-  }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
-
-  useEffect(() => {
-    places.forEach((place) => {
-      if (!popularityData[place.name]) {
-        fetchPopularData(place.name, (data) => {
-          setPopularityData(prev => ({
-            ...prev,
-            [place.name]: data
-          }));
-        });
-      }
-    });
-  }, [places]);
+  });
+}, [places]);
 
 const fetchPlaces = async () => {
   try {
@@ -280,7 +227,7 @@ const fetchPlaces = async () => {
       )?.long_name;
 
         if (city) {
-          const cityRes = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`);
+          const cityRes = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=YOUR_API_KEY`);
           const cityData = await cityRes.json();
           setPlaces(cityData.results.map(p => ({
             name: p.name,
