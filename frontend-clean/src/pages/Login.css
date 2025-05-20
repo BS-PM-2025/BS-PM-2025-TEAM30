@@ -1,3 +1,4 @@
+
 .login-container {
   display: flex;
   justify-content: center;
@@ -15,6 +16,12 @@
   text-align: center;
 }
 
+.login-box h1 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
 .login-box input {
   width: 100%;
   padding: 12px;
@@ -22,6 +29,7 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
+  box-sizing: border-box;
 }
 
 .login-box button {
@@ -33,25 +41,58 @@
   font-size: 16px;
   border-radius: 8px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
 }
 
 .login-box button:hover {
   background-color: #43a047;
 }
 
+.login-box .skip-login-button {
+  background-color: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.login-box .skip-login-button:hover {
+  background-color: #e0e0e0;
+}
+
 .error-msg {
-  color: red;
+  color: #f44336;
   margin-top: 10px;
+  font-size: 14px;
 }
 
 .success-msg {
-  color: green;
+  color: #4caf50;
   margin-top: 10px;
+  font-size: 14px;
+}
+
+.password-link {
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.password-link a, .register-link a {
+  color: #2196f3;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.password-link a:hover, .register-link a:hover {
+  color: #0b7dda;
+  text-decoration: underline;
 }
 
 .register-link {
   display: block;
-  margin-top: 15px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   color: #333;
+  font-size: 14px;
 }

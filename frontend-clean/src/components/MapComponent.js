@@ -86,36 +86,8 @@ const getAddressFromCoords = async (lat, lng) => {
     return '';
   }
 };
-const handleSave = async (place) => {
-  const email = localStorage.getItem('userEmail');
-  const address = await getAddressFromCoords(place.lat, place.lng); // ← כאן
+// הזזת הפונקציה הנה לתוך הקומפוננטה
 
-  if (email) {
-    const res = await fetch("http://localhost:8000/api/save-restaurant/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_email: email,
-        name: place.name,
-        lat: place.lat,
-        lng: place.lng,
-        address: address // ← לא place.address
-      })
-    });
-
-    const data = await res.json();
-    alert(data.message || 'נשמר');
-  } else {
-    const saved = JSON.parse(localStorage.getItem('savedRestaurants')) || [];
-    if (!saved.find(p => p.name === place.name)) {
-      saved.push({ name: place.name, lat: place.lat, lng: place.lng, address });
-      localStorage.setItem('savedRestaurants', JSON.stringify(saved));
-      alert(`✅ נשמר מקומית`);
-    } else {
-      alert(`⚠️ כבר נשמר מקומית`);
-    }
-  }
-};
 
 
 
@@ -138,10 +110,44 @@ const MapComponent = () => {
   const [destination, setDestination] = useState('');
   const [gpsFailed, setGpsFailed] = useState(false);
   const [popularityData, setPopularityData] = useState({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
 
 
   const mapRef = useRef(null);
   const circleRef = useRef(null);
+
+  const handleSave = async (place) => {
+    console.log('handleSave נקרא עבור:', place.name);
+    const email = localStorage.getItem('userEmail');
+    const address = await getAddressFromCoords(place.lat, place.lng);
+
+    if (email) {
+      try {
+        console.log('שומר מסעדה עבור משתמש מחובר:', email);
+        const res = await fetch("http://localhost:8000/api/save-restaurant/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_email: email,
+            name: place.name,
+            lat: place.lat,
+            lng: place.lng,
+            address: address
+          })
+        });
+
+        const data = await res.json();
+        alert(data.message || 'נשמר');
+      } catch (err) {
+        console.error('שגיאה בשמירת מסעדה:', err);
+        alert('שגיאה בשמירת המסעדה');
+      }
+    } else {
+      console.log('משתמש לא מחובר, מציג הודעת התחברות');
+      setShowLoginMessage(true);
+    }
+  };
 
   const onMapLoad = (map) => {
     mapRef.current = map;
@@ -150,6 +156,11 @@ const MapComponent = () => {
 
 
   useEffect(() => {
+    // בדיקה אם המשתמש מחובר
+    const email = localStorage.getItem('userEmail');
+    console.log('בדיקת התחברות:', email ? 'מחובר' : 'לא מחובר');
+    setIsLoggedIn(!!email);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -159,6 +170,22 @@ const MapComponent = () => {
       },
       () => setGpsFailed(true)
     );
+  }, []);
+
+  // כל פעם שהמרכיב מתרנדר, נבדוק אם המשתמש עדיין מחובר
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const email = localStorage.getItem('userEmail');
+      setIsLoggedIn(!!email);
+    };
+
+    // בדוק בכל פעם שהעמוד מקבל פוקוס
+    window.addEventListener('focus', checkLoginStatus);
+
+    // ניקוי האזנה בעת עזיבת הקומפוננטה
+    return () => {
+      window.removeEventListener('focus', checkLoginStatus);
+    };
   }, []);
 
 useEffect(() => {
@@ -223,7 +250,6 @@ const fetchPlaces = async () => {
       min_rating: rating,
       type,
       load_level: loadLevelFilter,
-
       email: onlyVisited ? email : ''
     }).toString();
 
@@ -245,7 +271,11 @@ const fetchPlaces = async () => {
 
   const markAsVisited = async (place) => {
     const email = localStorage.getItem('userEmail');
-    if (!email) return alert("התחבר כדי לשמור ביקורים");
+    if (!email) {
+      setShowLoginMessage(true);
+      return;
+    }
+
     try {
       const res = await fetch('http://localhost:8000/api/visit/', {
         method: 'POST',
@@ -268,7 +298,10 @@ const fetchPlaces = async () => {
 
   const removeVisit = async (place) => {
     const email = localStorage.getItem('userEmail');
-    if (!email) return alert("התחבר כדי להסיר מהרשימה");
+    if (!email) {
+      setShowLoginMessage(true);
+      return;
+    }
 
     try {
       const res = await fetch('http://localhost:8000/api/visit/remove', {
@@ -306,6 +339,7 @@ const fetchPlaces = async () => {
       if (mapRef.current) mapRef.current.panTo(coords);
     });
   };
+
   const translateLoadLevel = (level) => {
     switch (level) {
       case 'low': return 'נמוך';
@@ -319,6 +353,15 @@ const fetchPlaces = async () => {
     geocodeAddress(destination, (coords) => {
       if (mapRef.current) mapRef.current.panTo(coords);
     });
+  };
+
+  // פונקציה לטיפול בלחיצה על צ'קבוקס סינון ביקורים
+  const handleOnlyVisitedChange = (e) => {
+    if (!isLoggedIn && e.target.checked) {
+      setShowLoginMessage(true);
+      return;
+    }
+    setOnlyVisited(e.target.checked);
   };
 
   if (!isLoaded) return <div>טוען מפה...</div>;
@@ -341,18 +384,45 @@ const fetchPlaces = async () => {
   return (
     <div className="container">
       <header className="header">
-  <h1 className="logo">🍴 RouteBite</h1>
-  <button
-    className="login-button"
-    onClick={() => {
-      localStorage.removeItem('userEmail');
-      window.location.href = '/';
-    }}
-  >
-    התנתק
-  </button>
-</header>
+        <h1 className="logo">🍴 RouteBite</h1>
+        <div className="header-buttons">
+          {isLoggedIn ? (
+            <button
+              className="login-button"
+              onClick={() => {
+                localStorage.removeItem('userEmail');
+                setIsLoggedIn(false);
+                window.location.reload();
+              }}
+            >
+              התנתק
+            </button>
+          ) : (
+            <div className="auth-buttons">
+              <button
+                className="login-button"
+                onClick={() => window.location.href = '/login'}
+              >
+                התחברות
+              </button>
+              <button
+                className="register-button"
+                onClick={() => window.location.href = '/register'}
+              >
+                הרשמה
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
 
+      {showLoginMessage && (
+        <div className="login-message">
+          <p>⚠️ פעולה זו דורשת התחברות למערכת</p>
+          <button onClick={() => window.location.href = '/login'}>להתחברות</button>
+          <button onClick={() => setShowLoginMessage(false)}>סגור</button>
+        </div>
+      )}
 
       <div className="content">
         <aside className="sidebar">
@@ -382,19 +452,25 @@ const fetchPlaces = async () => {
             onChange={(e) => setDestination(e.target.value)}
           />
           <button onClick={handleDestinationSearch}>חפש יעד</button>
-           <button
-    style={{ marginTop: '10px', background: '#ffd700', color: 'black', fontWeight: 'bold' }}
-    onClick={() => window.location.href = '/saved'}
-  >
-    ⭐ למסעדות ששמרתי
-  </button>
+          <button
+            style={{ marginTop: '10px', background: '#ffd700', color: 'black', fontWeight: 'bold' }}
+            onClick={() => {
+              if (!isLoggedIn) {
+                setShowLoginMessage(true);
+                return;
+              }
+              window.location.href = '/saved';
+            }}
+          >
+            ⭐ למסעדות ששמרתי {!isLoggedIn && '(דורש התחברות)'}
+          </button>
           <label>
             <input
               type="checkbox"
               checked={onlyVisited}
-              onChange={(e) => setOnlyVisited(e.target.checked)}
+              onChange={handleOnlyVisitedChange}
             />
-            רק שביקרתי
+            רק שביקרתי {!isLoggedIn && '(דורש התחברות)'}
           </label>
           <label>
             <input
@@ -485,62 +561,68 @@ const fetchPlaces = async () => {
                     <h4>{place.name}</h4>
                     <p>דירוג: {place.rating || 'אין'}</p>
                     <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
-                    {place.visited ? (
+                    {isLoggedIn ? (
+                      place.visited ? (
                         <button onClick={() => removeVisit(place)}>הסר מהרשימה</button>
                       ) : (
                         <button onClick={() => markAsVisited(place)}>ביקרתי כאן</button>
+                      )
+                    ) : (
+                      <button onClick={() => setShowLoginMessage(true)}>ביקרתי כאן (דורש התחברות)</button>
                     )}
-                      <p>עומס: {translateLoadLevel(place.load_level)}</p>
-                      <button
-                        onClick={() => {
-                          console.log('🔘 נלחץ שמור על', place);
-                          handleSave(place);
-                        }}
-                      >
-                        📌 שמור כתובת
-                      </button>
+                    <p>עומס: {translateLoadLevel(place.load_level)}</p>
+                    <button
+                      onClick={() => {
+                        console.log('כפתור שמור נלחץ עבור:', place.name);
+                        if (!isLoggedIn) {
+                          setShowLoginMessage(true);
+                          return;
+                        }
+                        handleSave(place);
+                      }}
+                    >
+                      📌 שמור כתובת {!isLoggedIn && '(דורש התחברות)'}
+                    </button>
 
                     {place.visited && <p className="visited">✅ ביקרת כאן</p>}
                     <div className="popularity">
-  <p><strong>שעות עומס:</strong></p>
+                      <p><strong>שעות עומס:</strong></p>
 
-
-
-  {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
-    generateBackupPopularity()[0].popular_times
-  ).map((pt, i) => (
-    <div
-      key={i}
-      style={{
-        marginBottom: '6px',
-        fontSize: '13px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}
-    >
-      <span style={{ width: '35px', direction: 'ltr' }}>{pt.hour}:00</span>
-      <div style={{
-        background: '#e0e0e0',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        width: '100%',
-        height: '12px'
-      }}>
-        <div style={{
-          width: `${pt.percentage}%`,
-          backgroundColor:
-            pt.percentage > 70 ? '#d32f2f' :
-            pt.percentage > 40 ? '#fbc02d' :
-            '#4caf50',
-          height: '100%'
-        }}></div>
-      </div>
-      <span style={{ width: '40px', textAlign: 'left' }}>{pt.percentage}%</span>
-    </div>
-  ))}
-</div>
-</div>
+                      {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
+                        generateBackupPopularity()[0].popular_times
+                      ).map((pt, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            marginBottom: '6px',
+                            fontSize: '13px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <span style={{ width: '35px', direction: 'ltr' }}>{pt.hour}:00</span>
+                          <div style={{
+                            background: '#e0e0e0',
+                            borderRadius: '4px',
+                            overflow: 'hidden',
+                            width: '100%',
+                            height: '12px'
+                          }}>
+                            <div style={{
+                              width: `${pt.percentage}%`,
+                              backgroundColor:
+                                pt.percentage > 70 ? '#d32f2f' :
+                                pt.percentage > 40 ? '#fbc02d' :
+                                '#4caf50',
+                              height: '100%'
+                            }}></div>
+                          </div>
+                          <span style={{ width: '40px', textAlign: 'left' }}>{pt.percentage}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
