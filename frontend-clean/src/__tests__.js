@@ -834,3 +834,85 @@ describe('🍽️ בדיקת רכיב המלצת מסעדה', () => {
     });
   });
 });
+
+jest.mock('@react-google-maps/api', () => ({
+  ...jest.requireActual('@react-google-maps/api'),
+  useLoadScript: () => ({ isLoaded: true }),
+  GoogleMap: ({ children }) => <div>{children}</div>,
+  Marker: ({ label }) => <div>{label}</div>,
+  Circle: () => <div>Circle</div>
+}));
+
+describe('🗺️ MapComponent – סינון לפי עומס נוכחי', () => {
+  beforeEach(() => {
+    // מיקום מדומה
+    global.navigator.geolocation = {
+      getCurrentPosition: (cb) => {
+        cb({ coords: { latitude: 0, longitude: 0 } });
+      }
+    };
+  });
+
+  test('מסנן מסעדות לפי עומס נוכחי נמוך בלבד', async () => {
+    const nowHour = new Date().getHours();
+
+    const mockData = [
+      {
+        name: 'מסעדה עם עומס נמוך',
+        lat: 0,
+        lng: 0,
+        distance_in_meters: 100,
+        rating: 4.5
+      },
+      {
+        name: 'מסעדה עם עומס גבוה',
+        lat: 0,
+        lng: 0,
+        distance_in_meters: 300,
+        rating: 4.5
+      }
+    ];
+
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ json: async () => mockData }) // fetchPlaces
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          json: async () => ({
+            popular_times: [
+              {
+                day: 1,
+                popular_times: [
+                  { hour: nowHour, percentage: 25 } // עומס נמוך
+                ]
+              }
+            ]
+          })
+        })
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          json: async () => ({
+            popular_times: [
+              {
+                day: 1,
+                popular_times: [
+                  { hour: nowHour, percentage: 85 } // עומס גבוה
+                ]
+              }
+            ]
+          })
+        })
+      );
+
+    render(<MapComponent />);
+
+    // בוחר "עומס: נמוך"
+    const select = await screen.findByLabelText(/רמת עומס/i);
+    fireEvent.change(select, { target: { value: 'low' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('מסעדה עם עומס נמוך')).toBeInTheDocument();
+      expect(screen.queryByText('מסעדה עם עומס גבוה')).not.toBeInTheDocument();
+    });
+  });
+});
