@@ -263,10 +263,10 @@ const fetchPlaces = async () => {
     const email = localStorage.getItem('userEmail');
     const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
 
-    const randomLoad = () => {
-      const levels = ['low', 'medium', 'high'];
-      return levels[Math.floor(Math.random() * levels.length)];
-    };
+    // const randomLoad = () => {
+    //   const levels = ['low', 'medium', 'high'];
+    //   return levels[Math.floor(Math.random() * levels.length)];
+    // };
 
     // fallback לפי עיר אם אין רדיוס, חיפוש או ביקורים
     const isDefaultSearch = !radius && !search && !onlyVisited;
@@ -309,12 +309,8 @@ const fetchPlaces = async () => {
     const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
     const data = await response.json();
     setPlaces(
-  Array.isArray(data)
-    ? data.map(p => ({
-        ...p,
-        load_level: randomLoad() // 🆕 הוספת העומס לכל מסעדה
-      })).filter(p => !loadLevelFilter || p.load_level === loadLevelFilter) // ✅ סינון לפי העומס
-    : []
+  Array.isArray(data) ? data : []
+
 );
   } catch (err) {
     console.error('⚠️ Error:', err);
@@ -643,74 +639,104 @@ return (
               <p>לא נמצאו מסעדות.</p>
             ) : (
               <div className="cards">
-                {places.map((place, i) => (
-                  <div key={i} className="card">
-                    <h4>{place.name}</h4>
-                    <p>דירוג: {place.rating || 'אין'}</p>
-                    <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
-                    {isLoggedIn ? (
-                      place.visited ? (
-                        <button onClick={() => removeVisit(place)}>הסר מהרשימה</button>
-                      ) : (
-                        <button onClick={() => markAsVisited(place)}>ביקרתי כאן</button>
-                      )
-                    ) : (
-                      <button onClick={() => setShowLoginMessage(true)}>ביקרתי כאן (דורש התחברות)</button>
-                    )}
-                    <p>עומס: {translateLoadLevel(place.load_level)}</p>
-                    <button
-                      onClick={() => {
-                        console.log('כפתור שמור נלחץ עבור:', place.name);
-                        if (!isLoggedIn) {
-                          setShowLoginMessage(true);
-                          return;
-                        }
-                        handleSave(place);
-                      }}
-                    >
-                      📌 שמור כתובת {!isLoggedIn && '(דורש התחברות)'}
-                    </button>
+                {places
+  .filter((place) => {
+    if (!loadLevelFilter) return true;
 
-                    {place.visited && <p className="visited">✅ ביקרת כאן</p>}
-                    <div className="popularity">
-                      <p><strong>שעות עומס:</strong></p>
+    const nowHour = new Date().getHours();
+    const popular = popularityData[place.name]?.popular_times?.[0]?.popular_times || [];
+    const hourData = popular.find((pt) => pt.hour === nowHour);
 
-                      {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
-                        generateBackupPopularity()[0].popular_times
-                      ).map((pt, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            marginBottom: '6px',
-                            fontSize: '13px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          <span style={{ width: '35px', direction: 'ltr' }}>{pt.hour}:00</span>
-                          <div style={{
-                            background: '#e0e0e0',
-                            borderRadius: '4px',
-                            overflow: 'hidden',
-                            width: '100%',
-                            height: '12px'
-                          }}>
-                            <div style={{
-                              width: `${pt.percentage}%`,
-                              backgroundColor:
-                                pt.percentage > 70 ? '#d32f2f' :
-                                pt.percentage > 40 ? '#fbc02d' :
-                                '#4caf50',
-                              height: '100%'
-                            }}></div>
-                          </div>
-                          <span style={{ width: '40px', textAlign: 'left' }}>{pt.percentage}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+    if (!hourData) return true;
+
+    const percent = hourData.percentage;
+
+    if (loadLevelFilter === 'low') return percent <= 30;
+    if (loadLevelFilter === 'medium') return percent > 30 && percent <= 50;
+    if (loadLevelFilter === 'high') return percent > 50;
+
+    return true;
+  })
+  .map((place, i) => (
+    <div key={i} className="card">
+      <h4>{place.name}</h4>
+      <p>דירוג: {place.rating || 'אין'}</p>
+      <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
+
+      {isLoggedIn ? (
+        place.visited ? (
+          <button onClick={() => removeVisit(place)}>הסר מהרשימה</button>
+        ) : (
+          <button onClick={() => markAsVisited(place)}>ביקרתי כאן</button>
+        )
+      ) : (
+        <button onClick={() => setShowLoginMessage(true)}>ביקרתי כאן (דורש התחברות)</button>
+      )}
+
+      <p>
+        עומס נוכחי: {
+          (() => {
+            const hourNow = new Date().getHours();
+            const pt = popularityData[place.name]?.popular_times?.[0]?.popular_times?.find(p => p.hour === hourNow);
+            return pt ? `${pt.percentage}%` : 'לא ידוע';
+          })()
+        }
+      </p>
+
+      <button
+        onClick={() => {
+          console.log('כפתור שמור נלחץ עבור:', place.name);
+          if (!isLoggedIn) {
+            setShowLoginMessage(true);
+            return;
+          }
+          handleSave(place);
+        }}
+      >
+        📌 שמור כתובת {!isLoggedIn && '(דורש התחברות)'}
+      </button>
+
+      {place.visited && <p className="visited">✅ ביקרת כאן</p>}
+
+      <div className="popularity">
+        <p><strong>שעות עומס:</strong></p>
+        {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
+          generateBackupPopularity()[0].popular_times
+        ).map((pt, i) => (
+          <div
+            key={i}
+            style={{
+              marginBottom: '6px',
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <span style={{ width: '35px', direction: 'ltr' }}>{pt.hour}:00</span>
+            <div style={{
+              background: '#e0e0e0',
+              borderRadius: '4px',
+              overflow: 'hidden',
+              width: '100%',
+              height: '12px'
+            }}>
+              <div style={{
+                width: `${pt.percentage}%`,
+                backgroundColor:
+                  pt.percentage > 50 ? '#d32f2f' :
+                  pt.percentage > 40 ? '#fbc02d' :
+                  '#4caf50',
+                height: '100%'
+              }}></div>
+            </div>
+            <span style={{ width: '40px', textAlign: 'left' }}>{pt.percentage}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+))}
+
               </div>
             )}
           </div>
