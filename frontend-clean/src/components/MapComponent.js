@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './MapComponent.css';
 import { GoogleMap, useLoadScript, Marker, Circle } from '@react-google-maps/api';
+import SearchSidebar from './SearchSidebar';
 
 const libraries = ['places'];
 const mapContainerStyle = {
@@ -353,7 +354,7 @@ const fetchPlaces = async () => {
     }
 
     try {
-      const res = await fetch('http://localhost:8000/api/visit/remove', {
+      const res = await fetch('http://localhost:8000/api/visit/remove/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -508,96 +509,29 @@ return (
       )}
 
       <div className="content">
-        <aside className="sidebar">
-            <label>
-                רמת עומס:
-                <select
-                  value={loadLevelFilter}
-                  onChange={(e) => setLoadLevelFilter(e.target.value)}
-                >
-                  <option value="">ללא סינון</option>
-                  <option value="low">נמוך</option>
-                  <option value="medium">בינוני</option>
-                  <option value="high">גבוה</option>
-                </select>
-          </label>
+          <SearchSidebar
+      search={search}
+      setSearch={setSearch}
+      destination={destination}
+      setDestination={setDestination}
+      isLoggedIn={isLoggedIn}
+      setShowLoginMessage={setShowLoginMessage}
+      handleDestinationSearch={handleDestinationSearch}
+      setRating={setRating}
+  loadLevelFilter={loadLevelFilter}
+  setLoadLevelFilter={setLoadLevelFilter}
+  radius={radius}
+  setRadius={setRadius}
+  showCircle={showCircle}
+  setShowCircle={setShowCircle}
+  circleRef={circleRef}
+  useTimeFilter={useTimeFilter}
+  setUseTimeFilter={setUseTimeFilter}
+  onlyVisited={onlyVisited}
+  handleOnlyVisitedChange={handleOnlyVisitedChange}
+    />
 
-          <input
-            type="text"
-            placeholder="הכנס מסעדה או עיר"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="לאן תרצה להגיע?"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-          />
-          <button onClick={handleDestinationSearch}>חפש יעד</button>
-          <button
-            style={{ marginTop: '10px', background: '#ffd700', color: 'black', fontWeight: 'bold' }}
-            onClick={() => {
-              if (!isLoggedIn) {
-                setShowLoginMessage(true);
-                return;
-              }
-              window.location.href = '/saved';
-            }}
-          >
-            ⭐ למסעדות ששמרתי {!isLoggedIn && '(דורש התחברות)'}
-          </button>
-          <label>
-            <input
-              type="checkbox"
-              checked={onlyVisited}
-              onChange={handleOnlyVisitedChange}
-            />
-            רק שביקרתי {!isLoggedIn && '(דורש התחברות)'}
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={useTimeFilter}
-              onChange={(e) => setUseTimeFilter(e.target.checked)}
-            />
-            מיון לפי שעה
-          </label>
-          <label>
-            דירוג מינימלי:
-            <select onChange={(e) => setRating(e.target.value)}>
-              <option value="0">ללא סינון</option>
-              <option value="4">4+</option>
-              <option value="4.5">4.5+</option>
-              <option value="5">5 בלבד</option>
-            </select>
-          </label>
-          <label>
-            מרחק:
-            <select value={radius || ''} onChange={(e) => setRadius(parseInt(e.target.value))}>
-              <option value="">בחר רדיוס</option>
-              <option value="500">500 מטר</option>
-              <option value="1000">1000 מטר</option>
-              <option value="1500">1500 מטר</option>
-              <option value="2000">2000 מטר</option>
-              <option value="3000">3000 מטר</option>
-            </select>
-          </label>
-            <label>
-                <input
-                  type="checkbox"
-                  checked={showCircle}
-                  onChange={() => {
-                    if (showCircle && circleRef.current) {
-                      circleRef.current.setMap(null);
-                      circleRef.current = null;
-                    }
-                    setShowCircle(!showCircle);
-                  }}
-                />
-              הצג טבעת רדיוס
-            </label>
-        </aside>
+
 
         <main className="map-container">
           <GoogleMap

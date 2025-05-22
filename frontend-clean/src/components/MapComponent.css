@@ -170,6 +170,109 @@ body {
 .sidebar button[style*="background: #ffd700"]:hover {
   background-color: #ffc107 !important;
 }
+.food-icons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.food-button {
+  background-color: #f1f1f1;
+  border: none;
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.food-button.selected {
+  background-color: #ffd700;
+  font-weight: bold;
+}
+
+.food-icon {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 6px;
+  font-size: 22px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.star {
+  color: #ccc;
+}
+
+.star.selected {
+  color: #ffcc00;
+}
+
+.filters-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px 12px 0 0;
+  cursor: pointer;
+  background-color: #f1f1f1;
+  margin-left: 5px;
+  transition: background-color 0.3s;
+}
+
+.tab-button.active-blue {
+  background-color: #42a5f5;
+  color: white;
+}
+
+.tab-button.active-yellow {
+  background-color: #ffd700;
+  color: black;
+}
+.food-icons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.food-button {
+  background-color: #f1f1f1;
+  border: none;
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.food-button:hover {
+  background-color: #e0e0e0;
+}
+
+.food-icon {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
 
 .map-container {
   flex: 1;
