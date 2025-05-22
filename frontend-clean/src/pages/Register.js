@@ -32,8 +32,9 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-box">
-        <h1>🍽️ <strong>RouteBite</strong></h1>
-        <p>מצא את הדרך המהירה ביותר לאוכל הכי שווה 🍔📍🧭</p>
+
+<h2 className="site-name">🍽️ RouteBite</h2>
+<p>מצא את הדרך המהירה ביותר לאוכל הכי שווה 🍔📍🧭</p>
 
         {error && <p style={{ color: 'red' }}>{error}</p>}
 

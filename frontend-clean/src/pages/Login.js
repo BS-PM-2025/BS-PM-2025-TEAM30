@@ -35,7 +35,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2 className="site-name">RouteBite</h2>
+        <h2 className="site-name">🍽 RouteBite</h2>
 
         <form onSubmit={handleSubmit}>
           <input
