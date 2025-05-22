@@ -116,7 +116,7 @@ const SearchSidebar = ({
   ))}
 </div>
 
-
+          <p className="section-label">סינון לפי דירוג
           <div className="rating-stars">
             {[1, 2, 3, 4, 5].map((star) => (
               <span
@@ -131,6 +131,7 @@ const SearchSidebar = ({
               </span>
             ))}
           </div>
+            </p>
 
           <label>
             רמת עומס:
