@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import './MapComponent.css';
 import { GoogleMap, useLoadScript, Marker, Circle } from '@react-google-maps/api';
 
+
 const libraries = ['places'];
 const mapContainerStyle = {
   width: '100%',
@@ -114,6 +115,9 @@ const MapComponent = () => {
   const [showLoginMessage, setShowLoginMessage] = useState(false);
   const [recommendedRestaurant, setRecommendedRestaurant] = useState(null);
   const [showRecommendation, setShowRecommendation] = useState(true);
+  const [expandedCards, setExpandedCards] = useState({}); // מצב פתיחת כרטיסים
+
+
 
 
   const mapRef = useRef(null);
@@ -200,6 +204,34 @@ const MapComponent = () => {
     if (location) map.panTo(location);
   };
 
+  const getCurrentLoadInfo = (place) => {
+    const nowHour = new Date().getHours();
+    const popular = popularityData[place.name]?.popular_times?.[0]?.popular_times ||
+                   generateBackupPopularity()[0].popular_times;
+    const hourData = popular.find((pt) => pt.hour === nowHour);
+
+  if (!hourData || hourData.percentage === undefined) {
+  return { percentage: 0, level: 'המקום סגור' };
+}
+
+
+
+
+    const percentage = hourData.percentage;
+    let level = 'נמוך';
+    if (percentage > 50) level = 'גבוה';
+    else if (percentage > 30) level = 'בינוני';
+
+    return { percentage, level };
+  };
+
+  const toggleCardExpansion = (placeName) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [placeName]: !prev[placeName]
+    }));
+  };
+
 
   useEffect(() => {
     // בדיקה אם המשתמש מחובר
@@ -241,81 +273,78 @@ const MapComponent = () => {
     }
   }, [places]);
 
-useEffect(() => {
-  if (location && (radius || !showCircle)) fetchPlaces();
-}, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
+  useEffect(() => {
+    if (location && (radius || !showCircle)) fetchPlaces();
+  }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
 
-useEffect(() => {
-  places.forEach((place) => {
-    if (!popularityData[place.name]) {
-      fetchPopularData(place.name, (data) => {
-        setPopularityData(prev => ({
-          ...prev,
-          [place.name]: data
-        }));
-      });
-    }
-  });
-}, [places]);
-
-const fetchPlaces = async () => {
-  try {
-    const email = localStorage.getItem('userEmail');
-    const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
-
-    // const randomLoad = () => {
-    //   const levels = ['low', 'medium', 'high'];
-    //   return levels[Math.floor(Math.random() * levels.length)];
-    // };
-
-    // fallback לפי עיר אם אין רדיוס, חיפוש או ביקורים
-    const isDefaultSearch = !radius && !search && !onlyVisited;
-    if (isDefaultSearch && location) {
-      const geoRes = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`
-      );
-      const geoData = await geoRes.json();
-      const city = geoData.results[0]?.address_components.find(c =>
-        c.types.includes("locality")
-      )?.long_name;
-
-        if (city) {
-          const cityRes = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`);
-          const cityData = await cityRes.json();
-          setPlaces(cityData.results.map(p => ({
-            name: p.name,
-            lat: p.geometry.location.lat,
-            lng: p.geometry.location.lng,
-            rating: p.rating || null,
-            distance_in_meters: null,
-            visited: false,
-          })));
-          return;
-        }
+  useEffect(() => {
+    places.forEach((place) => {
+      if (!popularityData[place.name]) {
+        fetchPopularData(place.name, (data) => {
+          setPopularityData(prev => ({
+            ...prev,
+            [place.name]: data
+          }));
+        });
       }
+    });
+  }, [places]);
 
-    // בקשת fetch רגילה לפי הפילטרים הרגילים
-    const query = new URLSearchParams({
-      lat: location.lat,
-      lng: location.lng,
-      radius: radius || 1000,
-      search,
-      min_rating: rating,
-      type,
-      load_level: loadLevelFilter,
-      email: onlyVisited ? email : ''
-    }).toString();
+  const fetchPlaces = async () => {
+    try {
+      const email = localStorage.getItem('userEmail');
+      const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
+      // const randomLoad = () => {
+      //   const levels = ['low', 'medium', 'high'];
+      //   return levels[Math.floor(Math.random() * levels.length)];
+      // };
 
-    const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
-    const data = await response.json();
-    setPlaces(
-  Array.isArray(data) ? data : []
+      // fallback לפי עיר אם אין רדיוס, חיפוש או ביקורים
+      const isDefaultSearch = !radius && !search && !onlyVisited;
+      if (isDefaultSearch && location) {
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`
+        );
+        const geoData = await geoRes.json();
+        const city = geoData.results[0]?.address_components.find(c =>
+          c.types.includes("locality")
+        )?.long_name;
 
-);
-  } catch (err) {
-    console.error('⚠️ Error:', err);
-  }
-};
+          if (city) {
+            const cityRes = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`);
+            const cityData = await cityRes.json();
+            setPlaces(cityData.results.map(p => ({
+              name: p.name,
+              lat: p.geometry.location.lat,
+              lng: p.geometry.location.lng,
+              rating: p.rating || null,
+              distance_in_meters: null,
+              visited: false,
+              address: p.vicinity || p.formatted_address || ''
+            })));
+            return;
+          }
+        }
+
+      // בקשת fetch רגילה לפי הפילטרים הרגילים
+      const query = new URLSearchParams({
+        lat: location.lat,
+        lng: location.lng,
+        radius: radius || 1000,
+        search,
+        min_rating: rating,
+        type,
+        load_level: loadLevelFilter,
+        email: onlyVisited ? email : ''
+      }).toString();
+
+      const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
+      const data = await response.json();
+      setPlaces(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('⚠️ Error:', err);
+    }
+  };
 
 
   const markAsVisited = async (place) => {
@@ -429,6 +458,25 @@ const fetchPlaces = async () => {
       </div>
     );
   }
+const renderStars = (rating) => {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.25 && rating % 1 < 0.75;
+
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(<span key={`full-${i}`} className="star-label full">★</span>);
+  }
+
+  if (hasHalfStar) {
+    stars.push(<span key="half" className="star-label full">★</span>); // לא שקוף!
+  }
+
+  while (stars.length < 5) {
+    stars.push(<span key={`empty-${stars.length}`} className="star-label empty">★</span>);
+  }
+
+  return stars;
+};
 
 return (
   <div className="container">
@@ -448,6 +496,7 @@ return (
         <p>דירוג: {recommendedRestaurant.rating || 'אין דירוג'} ⭐</p>
         <p>מרחק: {Math.round(recommendedRestaurant.distance_in_meters)} מטר</p>
         <p>רמת עומס: {translateLoadLevel(recommendedRestaurant.load_level)}</p>
+
         <div className="recommendation-actions">
           <button
             onClick={() => markAsVisited(recommendedRestaurant)}
@@ -640,103 +689,145 @@ return (
             ) : (
               <div className="cards">
                 {places
-  .filter((place) => {
-    if (!loadLevelFilter) return true;
+                  .filter((place) => {
+                    if (!loadLevelFilter) return true;
 
-    const nowHour = new Date().getHours();
-    const popular = popularityData[place.name]?.popular_times?.[0]?.popular_times || [];
-    const hourData = popular.find((pt) => pt.hour === nowHour);
+                    const nowHour = new Date().getHours();
+                    const popular = popularityData[place.name]?.popular_times?.[0]?.popular_times || [];
+                    const hourData = popular.find((pt) => pt.hour === nowHour);
 
-    if (!hourData) return true;
+                    if (!hourData) return true;
 
-    const percent = hourData.percentage;
+                    const percent = hourData.percentage;
 
-    if (loadLevelFilter === 'low') return percent <= 30;
-    if (loadLevelFilter === 'medium') return percent > 30 && percent <= 50;
-    if (loadLevelFilter === 'high') return percent > 50;
+                    if (loadLevelFilter === 'low') return percent <= 30;
+                    if (loadLevelFilter === 'medium') return percent > 30 && percent <= 50;
+                    if (loadLevelFilter === 'high') return percent > 50;
 
-    return true;
-  })
-  .map((place, i) => (
-    <div key={i} className="card">
-      <h4>{place.name}</h4>
-      <p>דירוג: {place.rating || 'אין'}</p>
-      <p>מרחק: {Math.round(place.distance_in_meters)} מטר</p>
+                    return true;
+                  })
+                  .map((place, i) => {
+                    const currentLoad = getCurrentLoadInfo(place);
+                    const isExpanded = expandedCards[place.name]; // שינוי לשם המסעדה במקום אינדקס
 
-      {isLoggedIn ? (
-        place.visited ? (
-          <button onClick={() => removeVisit(place)}>הסר מהרשימה</button>
-        ) : (
-          <button onClick={() => markAsVisited(place)}>ביקרתי כאן</button>
-        )
-      ) : (
-        <button onClick={() => setShowLoginMessage(true)}>ביקרתי כאן (דורש התחברות)</button>
-      )}
+                    return (
+                      <div key={i} className="card">
+                                 <button
+  className={`heart-icon ${place.saved ? 'filled' : ''}`}
+  onClick={() => {
+    if (!isLoggedIn) {
+      setShowLoginMessage(true);
+      return;
+    }
 
-      <p>
-        עומס נוכחי: {
-          (() => {
-            const hourNow = new Date().getHours();
-            const pt = popularityData[place.name]?.popular_times?.[0]?.popular_times?.find(p => p.hour === hourNow);
-            return pt ? `${pt.percentage}%` : 'לא ידוע';
-          })()
-        }
-      </p>
+    handleSave(place);
 
-      <button
-        onClick={() => {
-          console.log('כפתור שמור נלחץ עבור:', place.name);
-          if (!isLoggedIn) {
-            setShowLoginMessage(true);
-            return;
-          }
-          handleSave(place);
-        }}
-      >
-        📌 שמור כתובת {!isLoggedIn && '(דורש התחברות)'}
-      </button>
+    setPlaces(prev =>
+      prev.map(p =>
+        p.name === place.name ? { ...p, saved: true } : p
+      )
+    );
+  }}
+  title={place.saved ? 'הוסר מהשמורים' : 'שמור למסעדה'}
+>
+  {place.saved ? '❤️' : '🤍'}
+</button>
 
-      {place.visited && <p className="visited">✅ ביקרת כאן</p>}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h4>{place.name}</h4>
 
-      <div className="popularity">
-        <p><strong>שעות עומס:</strong></p>
-        {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
-          generateBackupPopularity()[0].popular_times
-        ).map((pt, i) => (
-          <div
-            key={i}
-            style={{
-              marginBottom: '6px',
-              fontSize: '13px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span style={{ width: '35px', direction: 'ltr' }}>{pt.hour}:00</span>
-            <div style={{
-              background: '#e0e0e0',
-              borderRadius: '4px',
-              overflow: 'hidden',
-              width: '100%',
-              height: '12px'
-            }}>
-              <div style={{
-                width: `${pt.percentage}%`,
-                backgroundColor:
-                  pt.percentage > 50 ? '#d32f2f' :
-                  pt.percentage > 40 ? '#fbc02d' :
-                  '#4caf50',
-                height: '100%'
-              }}></div>
-            </div>
-            <span style={{ width: '40px', textAlign: 'left' }}>{pt.percentage}%</span>
-          </div>
-        ))}
-      </div>
+                        </div>
+                                             {place.address && (
+    <p className="restaurant-address"> {place.address}</p>
+  )}
+<div className="card-info-bar">
+  <div className="distance-label">{Math.round(place.distance_in_meters)} מטר</div>
+  <div className="rating-stars-label">{renderStars(place.rating || 0)}</div>
+  {currentLoad.percentage !== null && (
+    <div className={`load-tag ${currentLoad.level}`}>
+      עומס נוכחי {currentLoad.percentage}%
     </div>
-))}
+  )}
+  {place.icon && (
+    <img src={place.icon} alt="icon" className="icon" />
+  )}
+</div>
 
+
+
+
+
+
+  {isLoggedIn ? (
+    place.visited ? (
+      <button onClick={() => removeVisit(place)} className="visit-btn">הסר מהרשימה</button>
+    ) : (
+      <button onClick={() => markAsVisited(place)} className="visit-btn">ביקרתי כאן</button>
+    )
+  ) : (
+    <button onClick={() => setShowLoginMessage(true)} className="visit-btn">ביקרתי כאן</button>
+  )}
+
+ <div className="expand-toggle">
+  <p className="expand-text">הצג את שעות העומס לאורך כל היום</p>
+  <button
+    className="expand-button"
+    onClick={() => toggleCardExpansion(place.name)}
+  >
+    {isExpanded ? '▲' : '▼'}
+  </button>
+</div>
+
+
+
+
+
+                        {/* תצוגת כל השעות (רק אם מורחב) */}
+                        {isExpanded && (
+                          <div className="popularity">
+                            <p><strong>שעות עומס ליום:</strong></p>
+                            {(popularityData[place.name]?.popular_times?.[0]?.popular_times ||
+                              generateBackupPopularity()[0].popular_times
+                            ).map((pt, ptIndex) => (
+                              <div
+                                key={ptIndex}
+                                style={{
+                                  marginBottom: '6px',
+                                  fontSize: '13px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px'
+                                }}
+                              >
+                                <span style={{ width: '35px', direction: 'ltr' }}>{pt.hour}:00</span>
+                                <div style={{
+                                  background: '#e0e0e0',
+                                  borderRadius: '4px',
+                                  overflow: 'hidden',
+                                  width: '100%',
+                                  height: '12px'
+                                }}>
+                                  <div style={{
+                                    width: `${pt.percentage}%`,
+                                    backgroundColor:
+                                      pt.percentage > 50 ? '#d32f2f' :
+                                      pt.percentage > 40 ? '#fbc02d' :
+                                      '#4caf50',
+                                    height: '100%'
+                                  }}></div>
+                                </div>
+                                <span style={{ width: '40px', textAlign: 'left' }}>{pt.percentage}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+
+
+                        {place.visited && <p className="visited">✅ ביקרת כאן</p>}
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </div>

@@ -64,7 +64,7 @@ const Login = () => {
         {/* ✅ לינקים בשורה אחת */}
        <div className="login-links-row">
   <Link to="/forgot-password" className="login-link">שכחת סיסמה?</Link>
-  <span className="register-link">לא רשום עדיין? <Link to="/register">הירשם כאן 📝</Link></span>
+  <span className="register-link"> <Link to="/register">לא רשום עדיין? הירשם כאן 📝</Link></span>
 </div>
 
       </div>

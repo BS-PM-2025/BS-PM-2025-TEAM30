@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Heebo', sans-serif;
   direction: rtl;
   background-color: #e3f2fd;
 }
@@ -185,23 +185,16 @@ body {
   margin-top: 10px;
 }
 
-.cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 10px;
-}
 
-.card {
-  background-color: #e3f2fd;
-  border-radius: 12px;
-  padding: 12px;
-  width: 200px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
+
 
 .card h4 {
   margin: 0 0 6px 0;
+  font-size: 20px;
+  font-weight: bolder;
+  line-height: 1.5;
+  color: #212121;
+  font-family: 'Heebo', sans-serif;
 }
 
 .card p {
@@ -263,11 +256,9 @@ body {
   background-color: #388e3c;
 }
 
-.card h4 {
-  margin-bottom: 4px;
-}
 
-.card button {
+
+.card button :not(.heart-icon) {
   margin-top: 6px;
   padding: 4px 8px;
   background-color: #90caf9;
@@ -277,7 +268,7 @@ body {
   transition: background-color 0.2s;
 }
 
-.card button:hover {
+.card button:not(.heart-icon):hover {
   background-color: #64b5f6;
 }
 
@@ -370,3 +361,300 @@ body {
 .save-recommendation:hover {
   background-color: #1976d2;
 }
+/* הוסף את זה לסוף הקובץ MapComponent.css */
+
+
+
+
+.current-load p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+
+/* הוסף animation לפתיחה וסגירה */
+.popularity {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+
+.restaurant-address {
+  font-size: 13px;
+  color: #100f0f;
+  margin-top: 2px;
+  line-height: 1.3;
+  font-family: 'Heebo', sans-serif;
+}
+.heart-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #7a7474 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ccc;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background-color 0.3s, transform 0.2s;
+  color: #d32f2f;
+}
+
+.heart-icon:hover {
+  background-color: #ffeef0;
+  transform: scale(1.1);
+}
+
+/* כשהלב אדום */
+.heart-icon.filled {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.rating-stars-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.rating-stars-label {
+  background-color: #068bf6;
+  padding: 3px 8px;
+  border-radius: 8px;
+  display: flex;
+  gap: 2px;
+}
+.star-label {
+  color: #2d55d8;
+  font-size: 16px;
+}
+
+
+.star-label.full {
+  color:#e1e7ea;
+}
+
+.star-label.empty {
+  color: #2d55d8;
+}
+
+.rating-number {
+  font-size: 13px;
+  color: #333;
+}
+.distance-label {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #0484e3;
+  border: 1px solid #0582e6;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #f0f1f3;
+  margin-top: 4px;
+}
+
+.load-indicator {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  color: #e81a1a;
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.load-indicator.נמוך {
+  background-color: #4caf50; /* ירוק */
+}
+
+.load-indicator.בינוני {
+  background-color: #fbc02d; /* צהוב */
+  color: #000;
+}
+
+.load-indicator.גבוה {
+  background-color: #e53935; /* אדום */
+}
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 6px;
+}
+
+.visit-btn {
+  background-color: #42a5f5;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.visit-btn:hover {
+  background-color: #1e88e5;
+}
+
+.load-tag {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 13px;
+  color: #cf0b0b;
+}
+
+.load-tag.נמוך {
+  background-color: #4caf50;
+}
+
+.load-tag.בינוני {
+  background-color: #fbc02d;
+  color: #000;
+}
+
+.load-tag.גבוה {
+  background-color: #e53935;
+}
+
+
+
+
+.card-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.card-info-row .icon {
+  width: 22px;
+  height: 22px;
+}
+.card-info-row .rating-stars-label {
+  background-color: #1b8fe4;
+  padding: 3px 6px;
+  border-radius: 8px;
+  display: flex;
+}
+.card-info-row .load-indicator,
+.card-info-row .distance-label {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+
+.expand-toggle {
+  text-align: center;
+  padding-top: 8px;
+  margin-top: auto;
+}
+
+.expand-text {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.expand-button:hover {
+  background-color: #1e88e5;
+}
+
+.popularity {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+  margin-top: auto;
+  flex-grow: 1;
+}
+
+
+
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px; /* מוסיף רווח גם אופקי וגם אנכי */
+  align-items: stretch;
+  justify-content: center; /* או space-between לפי עיצוב */
+}
+
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height:auto;
+  padding: 6px;
+  border-radius: 16px;
+  background: white;
+  width: 250px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+}
+.expand-button {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: auto;
+  align-self: center;
+  transition: background-color 0.2s;
+}
+.card-info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2px 0;
+  flex-wrap:nowrap ;
+  gap: 4px;
+}
+
+.card-info-bar .rating-stars-label {
+  display: flex;
+  gap: 2px;
+  background-color: #2196f3;
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.card-info-bar .distance-label {
+  background-color: #2196f3;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 2px 6px;        /* גובה נמוך יותר */
+  font-size: 12px;         /* טקסט קטן יותר */
+  line-height: 1.1;        /* צפוף יותר */
+}
+
+
+.card-info-bar .load-tag {
+  background-color: #e53935;
+  color: white;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: bold;
+   line-height: 1.2;
+}
+
+.card-info-bar .icon {
+  width: 24px;
+  height: 24px;
+}
+

@@ -112,7 +112,10 @@ def nearby_restaurants(request):
                 "lng": lng2,
                 "rating": rating,
                 "distance_in_meters": round(distance),
-                "visited": visited
+                "visited": visited,
+                "icon": place.get("icon"),
+                "address": place.get("vicinity") or place.get("formatted_address") or ""
+
             })
 
         return JsonResponse(results, safe=False)
