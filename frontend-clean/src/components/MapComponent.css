@@ -13,30 +13,40 @@ body {
 }
 
 .header {
+  /*font-size: 40px;*/
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 3px;
+  animation: fadeInSlide 1s ease-out;
   width: 100%;
-  background-color: #bbdefb;
-  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+   padding: 6px 20px;
 }
 
 .logo {
-  font-size: 26px;
-  font-weight: bold;
-  color: #1976d2;
-  margin: 0;
+    font-family: 'Rubik', sans-serif;
+  background: linear-gradient(90deg, #4A90E2, #00C9FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+   font-size: 36px; /* היה 28px, תנסה אפילו 40px אם תרצה יותר דומיננטי */
+  padding: 0 10px;
+
 }
 
 .login-button {
   background-color: #42a5f5;
   border: none;
   color: white;
-  padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
+  padding: 10px 25px;    /* היה 10px 20px — מוגזם לגובה נמוך */
+
 }
 
 .login-button:hover {
@@ -47,21 +57,25 @@ body {
 .header-buttons {
   display: flex;
   gap: 10px;
+  color: white;
+  font-weight: bold;
 }
 
 /* עיצוב לאזור כפתורי התחברות והרשמה */
 .auth-buttons {
   display: flex;
   gap: 10px;
+
 }
 
 .register-button {
   background-color: #4caf50;
   border: none;
   color: white;
-  padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
+  padding: 10px 25px;    /* היה 10px 20px — מוגזם לגובה נמוך */
+  font-size: 14px;
 }
 
 .register-button:hover {
@@ -662,7 +676,7 @@ body {
   padding: 6px 10px;
   border-radius: 6px;
   font-weight: bold;
-  color: #e81a1a;
+  color: #e81a40;
   display: inline-block;
   margin-bottom: 4px;
   font-size: 14px;
@@ -704,25 +718,45 @@ body {
 }
 
 .load-tag {
-  padding: 5px 10px;
-  border-radius: 5px;
+  color: white;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
   font-weight: bold;
-  font-size: 13px;
-  color: #cf0b0b;
+   line-height: 1.2;
+   background-color: #d31010;
 }
 
 .load-tag.נמוך {
   background-color: #4caf50;
+  color: white;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: bold;
+   line-height: 1.2;
 }
 
 .load-tag.בינוני {
   background-color: #fbc02d;
-  color: #000;
+  color: white;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: bold;
+   line-height: 1.2;
 }
 
 .load-tag.גבוה {
-  background-color: #e53935;
+  background-color: #d31010;
+  color: white;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: bold;
+   line-height: 1.2;
 }
+
 
 
 
@@ -796,7 +830,7 @@ body {
   height:auto;
   padding: 6px;
   border-radius: 16px;
-  background: white;
+  background: #eae2e2;
   width: 250px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin-bottom: 16px;
@@ -841,22 +875,10 @@ body {
 }
 
 
-.card-info-bar .load-tag {
-  background-color: #e53935;
-  color: white;
-  border-radius: 6px;
-  padding: 2px 6px;
-  font-size: 12px;
-  font-weight: bold;
-   line-height: 1.2;
-}
-
 .card-info-bar .icon {
   width: 24px;
   height: 24px;
 }
-
-
 
 .yellow-button {
   background-color: #ffcc00;
