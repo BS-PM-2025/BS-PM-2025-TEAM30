@@ -47,12 +47,18 @@ def remove_visit(request):
     if not email or not name:
         return Response({'error': 'Missing data'}, status=400)
 
-    VisitedRestaurant.objects.filter(
+    print(f"Removing visit for user: {email}, restaurant: {name}")
+
+    deleted, _ = VisitedRestaurant.objects.filter(
         user_email=email,
-        restaurant_name__icontains=name
+        restaurant_name__iexact=name  # שינוי קריטי כאן
     ).delete()
 
+    if deleted == 0:
+        return Response({'error': 'No match found'}, status=404)
+
     return Response({'message': 'Visit removed'})
+
 
 @csrf_exempt
 def nearby_restaurants(request):
