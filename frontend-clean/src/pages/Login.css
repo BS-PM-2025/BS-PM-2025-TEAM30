@@ -4,7 +4,11 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+  background: url('https://www.transparenttextures.com/patterns/cubes.png'),
+  linear-gradient(to right, #d6f0ff, #eaf6ff);
+  background-blend-mode: overlay;
+
+
 }
 
 .login-box {
@@ -32,33 +36,33 @@
   box-sizing: border-box;
 }
 
-.login-box button {
-  width: 100%;
-  padding: 12px;
-  background-color: #4caf50;
-  border: none;
-  color: white;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
-}
+/*.login-box button {*/
+/*  width: 100%;*/
+/*  padding: 12px;*/
+/*  background-color: #4caf50;*/
+/*  border: none;*/
+/*  color: white;*/
+/*  font-size: 16px;*/
+/*  border-radius: 8px;*/
+/*  cursor: pointer;*/
+/*  transition: background-color 0.3s ease;*/
+/*  margin-top: 10px;*/
+/*}*/
 
 .login-box button:hover {
-  background-color: #43a047;
+  background-color: #007BFF;
 }
 
-.login-box .skip-login-button {
-  background-color: #f0f0f0;
-  color: #555;
-  border: 1px solid #ddd;
-  margin-top: 15px;
-  font-size: 14px;
-}
+/*.login-box .skip-login-button {*/
+/*  background-color: #f0f0f0;*/
+/*  color: #555;*/
+/*  border: 1px solid #ddd;*/
+/*  margin-top: 15px;*/
+/*  font-size: 14px;*/
+/*}*/
 
 .login-box .skip-login-button:hover {
-  background-color: #e0e0e0;
+  background-color: #fbf800;
 }
 
 .error-msg {
@@ -90,9 +94,112 @@
 }
 
 .register-link {
-  display: block;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  color: #333;
   font-size: 14px;
+  color: #333;
 }
+
+@keyframes fadeInSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.site-name {
+  font-family: 'Rubik', sans-serif;
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+  background: linear-gradient(90deg, #4A90E2, #00C9FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 4px;
+  margin-bottom: 20px;
+  animation: fadeInSlide 1s ease-out;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.login-title {
+  font-family: 'Rubik', sans-serif;
+  font-size: 36px;
+  font-weight: bold;
+  text-align: center;
+  background: linear-gradient(90deg, #00C9FF, #92FE9D);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+  animation: fadeInSlide 1.4s ease-out
+}
+
+/* כחול לכפתור התחברות */
+.login-button {
+  background-color: #007BFF;
+  color: white;
+}
+
+.login-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.03);
+}
+
+/* צהוב לכפתור המשך */
+.skip-login-button {
+  background-color: #fbf800;
+  color: #4d3900;
+}
+
+.skip-login-button:hover {
+  background-color: #ffcd00;
+  transform: scale(1.03);
+}
+
+.button-base {
+  width: 100%;
+  height: 48px;
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 16px;
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.login-links-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  font-size: 14px;
+  padding: 0 4px;
+}
+
+.login-links-row a {
+  text-decoration: none;
+  color: #2196f3;
+  transition: color 0.3s;
+  text-align: initial;
+  font-family: 'Rubik', sans-serif;
+
+}
+
+.login-links-row a:hover {
+  color: #0b7dda;
+  text-decoration: underline;
+}
+
+

@@ -17,23 +17,31 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="forgot-password-container">
-      <form onSubmit={handleSubmit} className="form-box">
-        <h2>שחזור סיסמה</h2>
-        <input
-          type="email"
-          placeholder="הכנס אימייל"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <button type="submit">שלח קישור</button>
-        <p className="message">{message}</p>
-                <span className="login-link">נזכרת? <a href="/login">התחבר כאן</a> </span>
-      </form>
+    <div className="login-container">
+      <div className="login-box">
+        <h2 className="site-name">🍽 RouteBite</h2>
+        <h3 className="login-title">שחזור סיסמה</h3>
 
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="הכנס את האימייל שלך"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <button type="submit" className="button-base login-button">שלח קישור</button>
+        </form>
+
+        {message && (
+          <p className={message.startsWith('✔') ? 'success-msg' : 'error-msg'}>{message}</p>
+        )}
+
+        <div className="login-links-row">
+          <a href="/login">נזכרת? התחבר כאן</a>
+        </div>
+      </div>
     </div>
-
   );
 };
 
