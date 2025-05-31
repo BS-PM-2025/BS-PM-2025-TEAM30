@@ -2,7 +2,7 @@
   max-width: 600px;
   margin: 50px auto;
   padding: 30px;
-  background-color: #fdfdfd;
+  background-color: #f0f8ff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   direction: rtl;
@@ -11,7 +11,7 @@
 }
 
 .form-container h2 {
-  color: #333;
+  color: #2a2a2a;
   margin-bottom: 30px;
 }
 
@@ -19,9 +19,10 @@
   width: 100%;
   padding: 12px;
   margin-bottom: 15px;
-  border: 1px solid #ccc;
+  border: 1px solid #b0d4f1;
   border-radius: 8px;
   font-size: 1rem;
+  background-color: #ffffff;
 }
 
 .form-container button {
@@ -45,4 +46,8 @@
   margin-top: 15px;
   font-weight: bold;
   color: #28a745;
+}
+
+body {
+  background: linear-gradient(to bottom, #e6f2ff, #ffffff);
 }

@@ -1,0 +1,73 @@
+.pending-page {
+  background: linear-gradient(to bottom, #e6f2ff, #ffffff);
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.pending-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.pending-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  text-align: right;
+}
+
+.pending-card h3 {
+  margin: 0 0 10px;
+  color: #1a1a1a;
+}
+
+.pending-card p {
+  margin: 4px 0;
+  color: #555;
+}
+
+.pending-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pending-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.approve-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+}
+
+.reject-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.reject-btn:hover {
+  background-color: #c82333;
+}
