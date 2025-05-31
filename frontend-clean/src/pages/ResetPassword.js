@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import './ResetPassword.css';
 
-
 const ResetPassword = () => {
   const { uid, token } = useParams();
   const [password, setPassword] = useState('');
@@ -30,26 +29,33 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="reset-password-container">
-      <form onSubmit={handleReset} className="form-box">
-        <h2>איפוס סיסמה</h2>
-        <input
-          type="password"
-          placeholder="סיסמה חדשה"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="אימות סיסמה"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-        <button type="submit">אפס סיסמה</button>
-        <p className="message">{message}</p>
-      </form>
+    <div className="login-container">
+      <div className="login-box">
+        <h2 className="site-name">🍽 RouteBite</h2>
+        <h3 className="login-title">איפוס סיסמה</h3>
+
+        <form onSubmit={handleReset}>
+          <input
+            type="password"
+            placeholder="סיסמה חדשה"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="אימות סיסמה"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          <button type="submit" className="button-base login-button">אפס סיסמה</button>
+        </form>
+
+        {message && (
+          <p className={message.startsWith('✅') ? 'success-msg' : 'error-msg'}>{message}</p>
+        )}
+      </div>
     </div>
   );
 };
