@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Login.css';
@@ -21,6 +22,7 @@ const Login = () => {
       const res = await axios.post('http://localhost:8000/api/login/', form);
       localStorage.setItem('userEmail', form.email);
       setSuccess(res.data.message || 'התחברת בהצלחה!');
+      // ניווט לאחר התחברות - רק פעם אחת
       navigate('/restaurants');
     } catch (err) {
       console.error('שגיאת התחברות:', err);
@@ -35,8 +37,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2 className="site-name">🍽 RouteBite</h2>
-
+        <h1>🔐 התחברות</h1>
         <form onSubmit={handleSubmit}>
           <input
             type="email"
@@ -54,19 +55,15 @@ const Login = () => {
             onChange={handleChange}
             required
           />
-          <button type="submit" className="button-base login-button">התחבר</button>
-          <button type="button" onClick={skipLogin} className="button-base skip-login-button">המשך ללא התחברות</button>
+          <button type="submit">התחבר</button>
         </form>
-
         {error && <p className="error-msg">{error}</p>}
         {success && <p className="success-msg">{success}</p>}
-
-        {/* ✅ לינקים בשורה אחת */}
-       <div className="login-links-row">
-  <Link to="/forgot-password" className="login-link">שכחת סיסמה?</Link>
-  <span className="register-link"> <Link to="/register">לא רשום עדיין? הירשם כאן 📝</Link></span>
-</div>
-
+        <p className="password-link">
+          <Link to="/forgot-password">?שכחת סיסמה</Link>
+        </p>
+        <span className="register-link">לא רשום עדיין? <Link to="/register">הירשם כאן</Link> 📝</span>
+        <button onClick={skipLogin} className="skip-login-button">המשך ללא התחברות</button>
       </div>
     </div>
   );

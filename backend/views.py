@@ -47,18 +47,12 @@ def remove_visit(request):
     if not email or not name:
         return Response({'error': 'Missing data'}, status=400)
 
-    print(f"Removing visit for user: {email}, restaurant: {name}")
-
-    deleted, _ = VisitedRestaurant.objects.filter(
+    VisitedRestaurant.objects.filter(
         user_email=email,
-        restaurant_name__iexact=name  # שינוי קריטי כאן
+        restaurant_name__icontains=name
     ).delete()
 
-    if deleted == 0:
-        return Response({'error': 'No match found'}, status=404)
-
     return Response({'message': 'Visit removed'})
-
 
 @csrf_exempt
 def nearby_restaurants(request):
@@ -77,7 +71,7 @@ def nearby_restaurants(request):
             "location": f"{lat},{lng}",
             "radius": 3000,
             "type": place_type,
-            "key": settings.GOOGLE_MAPS_API_KEY
+            "key": settings.REACT_APP_GOOGLE_MAPS_API_KEY
         }
 
         if search:
@@ -118,10 +112,7 @@ def nearby_restaurants(request):
                 "lng": lng2,
                 "rating": rating,
                 "distance_in_meters": round(distance),
-                "visited": visited,
-                "icon": place.get("icon"),
-                "address": place.get("vicinity") or place.get("formatted_address") or ""
-
+                "visited": visited
             })
 
         return JsonResponse(results, safe=False)
