@@ -1,0 +1,485 @@
+/* FullNavigationMap.css - עיצוב נקי ופשוט */
+
+.full-navigation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  direction: rtl;
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* כותרת */
+.navigation-header {
+  background: linear-gradient(135deg, #1976d2, #2196f3);
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 2001;
+}
+
+.nav-info h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.route-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.route-stats span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.nav-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.start-navigation-btn {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.start-navigation-btn:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
+}
+
+.close-nav-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+.close-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* תוכן ראשי - פריסה צד אל צד */
+.navigation-content {
+  display: flex;
+  height: calc(100vh - 80px);
+  gap: 0;
+}
+
+/* מפה בצד שמאל - 42% */
+.map-section {
+  width: 42%;
+  background: white;
+  border-left: 2px solid #e0e0e0;
+  position: relative;
+}
+
+/* הוראות בצד ימין - 58% */
+.directions-section {
+  width: 58%;
+  background: white;
+  overflow-y: auto;
+  padding: 20px;
+  direction: rtl;
+}
+
+/* כותרת הוראות */
+.directions-header-sidebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.directions-header-sidebar h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.total-info-sidebar {
+  display: flex;
+  gap: 12px;
+}
+
+.total-distance-sidebar,
+.total-duration-sidebar {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* כפתורי ניווט */
+.navigation-action-bottom {
+  margin: 20px 0;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+  text-align: center;
+}
+
+.main-navigation-btn-sidebar {
+  background: linear-gradient(135deg, #4285f4, #1976d2);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.main-navigation-btn-sidebar:hover {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+}
+
+/* צעדי הנסיעה */
+.steps-container-sidebar {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.direction-step-sidebar {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 15px;
+  margin-bottom: 10px;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.direction-step-sidebar:hover {
+  background: #f0f7ff;
+  border-color: #2196f3;
+  transform: translateX(-2px);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+}
+
+.step-number-sidebar {
+  background: #2196f3;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+.step-icon-sidebar {
+  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid #e0e0e0;
+}
+
+.step-content-sidebar {
+  flex: 1;
+}
+
+.instruction-text-sidebar {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.instruction-text-sidebar b,
+.instruction-text-sidebar strong {
+  color: #1976d2;
+  font-weight: bold;
+}
+
+.step-details-sidebar {
+  display: flex;
+  gap: 12px;
+}
+
+.step-distance-sidebar,
+.step-duration-sidebar {
+  background: #e8f5e8;
+  color: #2e7d32;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.step-duration-sidebar {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+/* מצבי טעינה ושגיאות */
+.navigation-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  color: white;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.navigation-loading h2 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+}
+
+.navigation-loading p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.navigation-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f44336;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.navigation-error h2 {
+  margin: 0 0 15px 0;
+  font-size: 24px;
+}
+
+.navigation-error p {
+  margin: 0 0 25px 0;
+  font-size: 16px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.google-maps-btn {
+  background: #4285f4;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.google-maps-btn:hover {
+  background: #3367d6;
+  transform: translateY(-2px);
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: white;
+  color: #f44336;
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .navigation-content {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .map-section {
+    width: 100%;
+    height: 300px;
+    border-left: none;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  .directions-section {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .navigation-header {
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nav-info h2 {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .route-stats {
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .nav-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .start-navigation-btn {
+    flex: 1;
+    margin-left: 10px;
+  }
+
+  .directions-header-sidebar {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .direction-step-sidebar {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .step-number-sidebar,
+  .step-icon-sidebar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .step-icon-sidebar {
+    font-size: 20px;
+  }
+
+  .instruction-text-sidebar {
+    font-size: 15px;
+  }
+
+  .main-navigation-btn-sidebar {
+    padding: 14px 28px;
+    font-size: 16px;
+  }
+}
+
+/* סקרול בר מותאם */
+.steps-container-sidebar::-webkit-scrollbar,
+.directions-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.steps-container-sidebar::-webkit-scrollbar-track,
+.directions-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.steps-container-sidebar::-webkit-scrollbar-thumb,
+.directions-section::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.steps-container-sidebar::-webkit-scrollbar-thumb:hover,
+.directions-section::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
