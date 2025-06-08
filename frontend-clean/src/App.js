@@ -1,3 +1,4 @@
+// frontend-clean/src/App.js - עדכון הקובץ הקיים
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -8,6 +9,7 @@ import AddRestaurantPage from './pages/AddRestaurantPage';
 import DetectRestaurant from './pages/DetectRestaurant';
 import PendingRestaurantsPage from './pages/PendingRestaurantsPage';
 import SavedRestaurants from './pages/SavedRestaurants';
+import UserPreferences from './pages/UserPreferences'; // 🆕 קומפוננט חדש
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
         <Route path="/detect" element={<DetectRestaurant />} />
         <Route path="/pending" element={<PendingRestaurantsPage />} />
         <Route path="/saved" element={<SavedRestaurants />} />
+        {/* 🆕 נתיב חדש להעדפות */}
+        <Route path="/preferences" element={<UserPreferences />} />
       </Routes>
     </Router>
   );

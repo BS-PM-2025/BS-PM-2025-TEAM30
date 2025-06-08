@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.shortcuts import render
 from rest_framework import generics
 from .models import User
@@ -6,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-
+from .serializers import UserSerializer, UserPreferencesSerializer
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
@@ -14,6 +16,10 @@ from django.core.mail import send_mail
 
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
+import json
+from rest_framework.views import APIView
+from rest_framework.decorators import api_view
+
 
 class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -113,3 +119,178 @@ class ResetPasswordView(APIView):
 #
 #         except User.DoesNotExist:
 #             return Response({'error': '❌ לא נמצא משתמש עם המייל הזה'}, status=status.HTTP_404_NOT_FOUND)
+class UserPreferencesView(APIView):
+    """API לניהול העדפות משתמש"""
+
+    def get(self, request):
+        """קבלת העדפות המשתמש הנוכחי"""
+        email = request.GET.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+
+            # יצירת מבנה נתונים מפורט
+            preferences_data = {
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'preferred_breakfast_time': user.preferred_breakfast_time.strftime(
+                    '%H:%M') if user.preferred_breakfast_time else '09:00',
+                'preferred_lunch_time': user.preferred_lunch_time.strftime(
+                    '%H:%M') if user.preferred_lunch_time else '13:00',
+                'preferred_dinner_time': user.preferred_dinner_time.strftime(
+                    '%H:%M') if user.preferred_dinner_time else '19:00',
+                'preferred_food_types': user.preferred_food_types or '[]',
+                'preferred_food_types_list': user.get_preferred_food_types(),
+                'max_distance_preference': user.max_distance_preference or 2000,
+                'min_rating_preference': user.min_rating_preference or 3.0,
+                'current_meal_preference': self._get_current_meal_preference(user)
+            }
+
+            return Response(preferences_data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"🚨 שגיאה בקבלת העדפות: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        """עדכון העדפות המשתמש"""
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+
+            print(f"🔧 מעדכן העדפות עבור: {email}")
+            print(f"📋 נתונים שהתקבלו: {request.data}")
+
+            # עדכון העדפות שעות - בצורה בטוחה
+            if 'preferred_breakfast_time' in request.data and request.data['preferred_breakfast_time']:
+                try:
+                    user.preferred_breakfast_time = datetime.strptime(request.data['preferred_breakfast_time'],
+                                                                      '%H:%M').time()
+                except ValueError as ve:
+                    print(f"⚠️ שגיאה בפרסור שעת בוקר: {ve}")
+
+            if 'preferred_lunch_time' in request.data and request.data['preferred_lunch_time']:
+                try:
+                    user.preferred_lunch_time = datetime.strptime(request.data['preferred_lunch_time'], '%H:%M').time()
+                except ValueError as ve:
+                    print(f"⚠️ שגיאה בפרסור שעת צהריים: {ve}")
+
+            if 'preferred_dinner_time' in request.data and request.data['preferred_dinner_time']:
+                try:
+                    user.preferred_dinner_time = datetime.strptime(request.data['preferred_dinner_time'],
+                                                                   '%H:%M').time()
+                except ValueError as ve:
+                    print(f"⚠️ שגיאה בפרסור שעת ערב: {ve}")
+
+            # עדכון העדפות נוספות
+            if 'preferred_food_types' in request.data:
+                food_types = request.data['preferred_food_types']
+                if isinstance(food_types, list):
+                    user.set_preferred_food_types(food_types)
+                elif isinstance(food_types, str):
+                    try:
+                        food_types_list = json.loads(food_types)
+                        user.set_preferred_food_types(food_types_list)
+                    except json.JSONDecodeError:
+                        user.preferred_food_types = food_types
+
+            if 'max_distance_preference' in request.data:
+                try:
+                    user.max_distance_preference = int(request.data['max_distance_preference'])
+                except (ValueError, TypeError):
+                    print(f"⚠️ שגיאה בפרסור מרחק מקסימלי")
+
+            if 'min_rating_preference' in request.data:
+                try:
+                    user.min_rating_preference = float(request.data['min_rating_preference'])
+                except (ValueError, TypeError):
+                    print(f"⚠️ שגיאה בפרסור דירוג מינימלי")
+
+            user.save()
+            print(f"✅ העדפות נשמרו בהצלחה עבור {email}")
+
+            # החזרת נתונים מעודכנים
+            updated_preferences = {
+                'email': user.email,
+                'preferred_breakfast_time': user.preferred_breakfast_time.strftime(
+                    '%H:%M') if user.preferred_breakfast_time else '09:00',
+                'preferred_lunch_time': user.preferred_lunch_time.strftime(
+                    '%H:%M') if user.preferred_lunch_time else '13:00',
+                'preferred_dinner_time': user.preferred_dinner_time.strftime(
+                    '%H:%M') if user.preferred_dinner_time else '19:00',
+                'preferred_food_types_list': user.get_preferred_food_types(),
+                'max_distance_preference': user.max_distance_preference,
+                'min_rating_preference': user.min_rating_preference,
+            }
+
+            return Response({
+                'message': '✅ ההעדפות עודכנו בהצלחה',
+                'preferences': updated_preferences
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"🚨 שגיאה בעדכון העדפות: {str(e)}")
+            print(f"📋 סוג השגיאה: {type(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response({'error': f'שגיאה בשמירת ההעדפות: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def _get_current_meal_preference(self, user):
+        """פונקציה פרטית לקבלת ההעדפה הנוכחית"""
+        try:
+            meal_type, preferred_time = user.get_current_meal_preference()
+            return {
+                'meal_type': meal_type,
+                'preferred_time': preferred_time.strftime('%H:%M') if preferred_time else None
+            }
+        except Exception as e:
+            print(f"⚠️ שגיאה בקבלת העדפה נוכחית: {e}")
+            return {
+                'meal_type': 'lunch',
+                'preferred_time': '13:00'
+            }
+
+
+@api_view(['GET'])
+def get_smart_recommendations(request):
+    """המלצות חכמות בהתבסס על העדפות המשתמש"""
+    email = request.GET.get('email')
+    lat = request.GET.get('lat')
+    lng = request.GET.get('lng')
+
+    if not all([email, lat, lng]):
+        return Response({'error': 'Email, lat, and lng are required'}, status=400)
+
+    try:
+        user = User.objects.get(email=email)
+
+        # קבלת העדפות נוכחיות
+        meal_type, preferred_time = user.get_current_meal_preference()
+        preferred_foods = user.get_preferred_food_types()
+
+        recommendations = {
+            'meal_type': meal_type,
+            'preferred_time': preferred_time.strftime('%H:%M') if preferred_time else None,
+            'preferred_foods': preferred_foods,
+            'max_distance': user.max_distance_preference,
+            'min_rating': user.min_rating_preference,
+            'message': f'המלצות ל{meal_type} בשעה {preferred_time.strftime("%H:%M") if preferred_time else "לא הוגדר"}'
+        }
+
+        return Response(recommendations, status=200)
+
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+    except Exception as e:
+        print(f"🚨 שגיאה בהמלצות: {str(e)}")
+        return Response({'error': str(e)}, status=500)

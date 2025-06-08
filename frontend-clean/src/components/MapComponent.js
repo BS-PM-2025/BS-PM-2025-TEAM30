@@ -4,6 +4,8 @@ import './MapComponent.css';
 import { GoogleMap, useLoadScript, Marker, Circle } from '@react-google-maps/api';
 import SearchSidebar from './SearchSidebar';
 import FullNavigationMap from './FullNavigationMap/FullNavigationMap';
+import axios from 'axios';
+
 
 const libraries = ['places'];
 const mapContainerStyle = {
@@ -12,6 +14,23 @@ const mapContainerStyle = {
 };
 
 const fetchPopularData = async (placeName, callback) => {
+   // 👇 השבתת Outscraper זמנית כדי לא לבזבז קרדיט
+  //לא למחוק שמתי את זה בנתיים בהערה כדי שלא ייגמרו השימושים !!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // try {
+  //   const res = await fetch(`http://localhost:8000/api/load/?name=${encodeURIComponent(placeName)}`);
+  //   const data = await res.json();
+  //   if (res.ok) {
+  //     callback({ ...data, is_fake: false }); // נתון אמיתי
+  //   } else {
+  //     callback({ popular_times: generateBackupPopularity() });
+  //   }
+  // } catch (err) {
+  //   console.error("שגיאה בשליפת עומס:", err);
+  //   callback({ popular_times: generateBackupPopularity() }); //
+  // }
+
+  //  שימוש זמני בנתונים מדומים
+  callback({ popular_times: generateBackupPopularity() });
   // שימוש זמני בנתונים מדומים
   callback({ popular_times: generateBackupPopularity(), is_fake: true });
 };
@@ -100,44 +119,138 @@ const MapComponent = () => {
   const [showDirectionsModal, setShowDirectionsModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [showDirectionsVisible, setShowDirectionsVisible] = useState(true);
-
+const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const mapRef = useRef(null);
   const circleRef = useRef(null);
+   const [userPreferences, setUserPreferences] = useState(null);
+  const [smartRecommendations, setSmartRecommendations] = useState(null);
 
-  const findBestRestaurantForCurrentTime = (restaurants) => {
-    if (!restaurants || restaurants.length === 0) return null;
+ const findBestRestaurantForCurrentTime = (restaurants) => {
+  if (!restaurants || restaurants.length === 0) return null;
 
-    const sortedByRating = [...restaurants].sort((a, b) => {
-      const ratingA = a.rating || 0;
-      const ratingB = b.rating || 0;
-      return ratingB - ratingA;
-    });
+  const sortedByRating = [...restaurants].sort((a, b) => {
+    const ratingA = a.rating || 0;
+    const ratingB = b.rating || 0;
+    return ratingB - ratingA;
+  });
 
-    const currentHour = new Date().getHours();
-    let bestMatch = null;
+  const currentHour = new Date().getHours();
+  let bestMatch = null;
 
-    if (currentHour < 12) {
-      bestMatch = sortedByRating.find(r =>
-        r.name.includes('קפה') ||
-        r.name.toLowerCase().includes('cafe') ||
-        r.name.toLowerCase().includes('coffee')
-      );
-    } else if (currentHour >= 12 && currentHour < 18) {
-      bestMatch = sortedByRating.find(r =>
-        !r.name.toLowerCase().includes('bar') &&
-        !r.name.toLowerCase().includes('פאב')
-      );
+  if (currentHour < 12) {
+    bestMatch = sortedByRating.find(r =>
+      r.name.includes('קפה') ||
+      r.name.toLowerCase().includes('cafe') ||
+      r.name.toLowerCase().includes('coffee')
+    );
+  } else if (currentHour >= 12 && currentHour < 18) {
+    bestMatch = sortedByRating.find(r =>
+      !r.name.toLowerCase().includes('bar') &&
+      !r.name.toLowerCase().includes('פאב')
+    );
+  } else {
+    bestMatch = sortedByRating.find(r =>
+      r.name.toLowerCase().includes('bar') ||
+      r.name.toLowerCase().includes('פאב') ||
+      r.rating >= 4.0
+    );
+  }
+
+  return bestMatch || sortedByRating[0];
+};
+  const loadUserPreferences = async () => {
+  const email = localStorage.getItem('userEmail');
+  if (!email) {
+    setPreferencesLoaded(true);
+    return Promise.resolve();
+  }
+
+  try {
+    console.log('📡 שולח בקשה לטעינת העדפות...');
+    const response = await axios.get(`http://localhost:8000/api/preferences/?email=${email}`);
+
+    if (response.data && Object.keys(response.data).length > 0) {
+      setUserPreferences(response.data);
+      console.log('🎯 העדפות נטענו:', response.data);
     } else {
-      bestMatch = sortedByRating.find(r =>
-        r.name.toLowerCase().includes('bar') ||
-        r.name.toLowerCase().includes('פאב') ||
-        r.rating >= 4.0
-      );
+      console.log('📝 אין העדפות שמורות');
+      setUserPreferences(null);
     }
 
-    return bestMatch || sortedByRating[0];
-  };
+    setPreferencesLoaded(true);
+    return Promise.resolve(response.data);
+  } catch (error) {
+    console.error('❌ שגיאה בטעינת העדפות:', error);
+    setUserPreferences(null);
+    setPreferencesLoaded(true);
+    return Promise.resolve(null);
+  }
+};
 
+const loadSmartRecommendations = async () => {
+  const email = localStorage.getItem('userEmail');
+  if (!email || !location) return;
+
+  try {
+    const response = await axios.get(
+      `http://localhost:8000/api/recommendations/?email=${email}&lat=${location.lat}&lng=${location.lng}`
+    );
+    setSmartRecommendations(response.data);
+    console.log('🤖 המלצות חכמות:', response.data);
+  } catch (error) {
+    console.error('שגיאה בקבלת המלצות:', error);
+  }
+};
+
+const filterByUserPreferences = (places) => {
+  console.log('🎯 filterByUserPreferences נקראה');
+  console.log('📊 מספר מסעדות לפני סינון:', places.length);
+  console.log('👤 העדפות נוכחיות:', userPreferences);
+
+  if (!userPreferences) {
+    console.log('❌ אין העדפות משתמש - מציג את כל המסעדות');
+    return places;
+  }
+
+  const preferredFoodTypes = userPreferences.preferred_food_types_list || [];
+  console.log('🍕 סוגי אוכל מועדפים:', preferredFoodTypes);
+
+  if (preferredFoodTypes.length === 0) {
+    console.log('📝 אין העדפות אוכל ספציפיות - מציג הכל');
+    return places;
+  }
+
+  const filteredPlaces = places.filter(place => {
+    const placeName = place.name.toLowerCase();
+
+    const hasPreferredFood = preferredFoodTypes.some(foodType => {
+      const foodTypeLower = foodType.toLowerCase();
+
+      const matches =
+        placeName.includes(foodTypeLower) ||
+        (foodTypeLower === 'burger' && (placeName.includes('hamburger') || placeName.includes('burger'))) ||
+        (foodTypeLower === 'pizza' && placeName.includes('pizz')) ||
+        (foodTypeLower === 'sushi' && placeName.includes('sush')) ||
+        (foodTypeLower === 'mexican' && (placeName.includes('mexic') || placeName.includes('taco'))) ||
+        (foodTypeLower === 'cafe' && (placeName.includes('caf') || placeName.includes('קפה')));
+
+      if (matches) {
+        console.log(`✅ "${place.name}" תואם "${foodType}"`);
+      }
+
+      return matches;
+    });
+
+    if (!hasPreferredFood) {
+      console.log(`❌ "${place.name}" לא תואם העדפות: ${preferredFoodTypes.join(', ')}`);
+    }
+
+    return hasPreferredFood;
+  });
+
+  console.log(`📈 תוצאת סינון: ${places.length} -> ${filteredPlaces.length} מסעדות`);
+  return filteredPlaces;
+};
   const handleSave = async (place) => {
     console.log('handleSave נקרא עבור:', place.name);
     const email = localStorage.getItem('userEmail');
@@ -212,21 +325,30 @@ const MapComponent = () => {
     setSelectedRestaurant(null);
   };
 
-  useEffect(() => {
-    const email = localStorage.getItem('userEmail');
-    console.log('בדיקת התחברות:', email ? 'מחובר' : 'לא מחובר');
-    setIsLoggedIn(!!email);
+useEffect(() => {
+  const email = localStorage.getItem('userEmail');
+  setIsLoggedIn(!!email);
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        const userLocation = { lat: latitude, lng: longitude };
-        setLocation(userLocation);
-        if (mapRef.current) mapRef.current.panTo(userLocation);
-      },
-      () => setGpsFailed(true)
-    );
-  }, []);
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const userLocation = { lat: latitude, lng: longitude };
+      setLocation(userLocation);
+      if (mapRef.current) mapRef.current.panTo(userLocation);
+
+      // טען העדפות רק אם יש משתמש מחובר
+      if (email) {
+        await loadUserPreferences();
+      } else {
+        setPreferencesLoaded(true);
+      }
+    },
+    () => {
+      setGpsFailed(true);
+      setPreferencesLoaded(true);
+    }
+  );
+}, []);
 
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -248,8 +370,16 @@ const MapComponent = () => {
   }, [places]);
 
   useEffect(() => {
-    if (location && (radius || !showCircle)) fetchPlaces();
-  }, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
+  if (!location || !preferencesLoaded) {
+    console.log('⏳ מחכה למיקום ולהעדפות...');
+    return;
+  }
+
+  console.log('🚀 מתחיל חיפוש עם העדפות!');
+  if (radius || !showCircle) {
+    fetchPlaces();
+  }
+}, [location, preferencesLoaded, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
 
   useEffect(() => {
     places.forEach((place) => {
@@ -263,57 +393,168 @@ const MapComponent = () => {
       }
     });
   }, [places]);
-
-  const fetchPlaces = async () => {
+useEffect(() => {
+  const savedFilters = localStorage.getItem('mapFilters');
+  if (savedFilters) {
     try {
-      const email = localStorage.getItem('userEmail');
-      const type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
+      const filters = JSON.parse(savedFilters);
+      console.log('🔄 טוען סינונים שמורים:', filters);
 
-      const isDefaultSearch = !radius && !search && !onlyVisited;
-      if (isDefaultSearch && location) {
-        const geoRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`
-        );
-        const geoData = await geoRes.json();
-        const city = geoData.results[0]?.address_components.find(c =>
-          c.types.includes("locality")
-        )?.long_name;
+      // החל את הסינונים השמורים
+      if (filters.search) setSearch(filters.search);
+      if (filters.rating) setRating(Number(filters.rating));
+      if (filters.radius) setRadius(Number(filters.radius));
+      if (filters.loadLevelFilter) setLoadLevelFilter(filters.loadLevelFilter);
+      if (filters.useTimeFilter !== undefined) setUseTimeFilter(filters.useTimeFilter);
+      if (filters.onlyVisited !== undefined) setOnlyVisited(filters.onlyVisited);
+      if (filters.showCircle !== undefined) setShowCircle(filters.showCircle);
 
-        if (city) {
-          const cityRes = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`);
-          const cityData = await cityRes.json();
-          setPlaces(cityData.results.map(p => ({
-            name: p.name,
-            lat: p.geometry.location.lat,
-            lng: p.geometry.location.lng,
-            rating: p.rating || null,
-            distance_in_meters: null,
-            visited: false,
-            address: p.formatted_address || null,
-            icon: p.icon || null
-          })));
-          return;
-        }
-      }
-
-      const query = new URLSearchParams({
-        lat: location.lat,
-        lng: location.lng,
-        radius: radius || 1000,
-        search,
-        min_rating: rating,
-        type,
-        load_level: loadLevelFilter,
-        email: onlyVisited ? email : ''
-      }).toString();
-
-      const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
-      const data = await response.json();
-      setPlaces(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('⚠️ Error:', err);
+      console.log('✅ סינונים הוחלו בהצלחה');
+    } catch (error) {
+      console.error('❌ שגיאה בטעינת סינונים:', error);
+      localStorage.removeItem('mapFilters'); // מחק סינונים פגומים
     }
+  }
+}, []); // רק פעם אחת בטעינת הקומפוננטה
+useEffect(() => {
+  // חכה שהמיקום יטען לפני שמירה
+  if (!location) return;
+
+  const filtersToSave = {
+    search,
+    rating: Number(rating),
+    radius: Number(radius),
+    loadLevelFilter,
+    useTimeFilter,
+    onlyVisited,
+    showCircle
   };
+
+  // בדוק אם יש סינונים פעילים
+  const hasActiveFilters =
+    search.trim() !== '' ||
+    Number(rating) > 0 ||
+    Number(radius) > 0 ||
+    loadLevelFilter !== '' ||
+    useTimeFilter !== true ||
+    onlyVisited !== false ||
+    showCircle !== false;
+
+  if (hasActiveFilters) {
+    localStorage.setItem('mapFilters', JSON.stringify(filtersToSave));
+    console.log('💾 סינונים נשמרו:', filtersToSave);
+  } else {
+    // אם אין סינונים פעילים, מחק מהזיכרון
+    localStorage.removeItem('mapFilters');
+    console.log('🗑️ סינונים נמחקו (ברירת מחדל)');
+  }
+}, [search, rating, radius, loadLevelFilter, useTimeFilter, onlyVisited, showCircle, location]);
+useEffect(() => {
+  if (location && (radius || !showCircle)) {
+    console.log('🔍 מפעיל חיפוש עם סינונים חדשים');
+    fetchPlaces();
+  }
+}, [location, radius, search, rating, onlyVisited, useTimeFilter, showCircle, loadLevelFilter]);
+
+  useEffect(() => {
+  if (location && userPreferences) {
+    loadSmartRecommendations();
+  }
+}, [location, userPreferences]);
+const getDefaultRestaurantImage = () => {
+  return "data:image/svg+xml," + encodeURIComponent(`
+    <svg width="400" height="120" xmlns="http://www.w3.org/2000/svg">
+      <rect width="400" height="120" fill="#f5f5f5"/>
+      <text x="200" y="70" text-anchor="middle" font-family="Arial" font-size="40" fill="#999">🍽️</text>
+    </svg>
+  `);
+};
+  const fetchPlaces = async () => {
+
+    console.log('🚀 fetchPlaces נקראה עם הפרמטרים הבאים:');
+  console.log('📍 מיקום:', location);
+  console.log('🔍 חיפוש:', search);
+  console.log('⭐ דירוג:', rating);
+  console.log('📏 רדיוס:', radius);
+  console.log('🏷️ רמת עומס:', loadLevelFilter);
+  console.log('👤 רק שביקרתי:', onlyVisited);
+  try {
+    const email = localStorage.getItem('userEmail');
+    let type = useTimeFilter ? getTimeBasedPlaceType() : 'restaurant';
+
+    console.log('🔍 מתחיל חיפוש מסעדות...');
+    console.log('👤 משתמש:', email || 'אנונימי');
+    console.log('⚙️ העדפות נוכחיות:', userPreferences);
+
+    // 🆕 שימוש בהעדפות לקביעת סוג האוכל
+    if (userPreferences && userPreferences.current_meal_preference) {
+      const { meal_type } = userPreferences.current_meal_preference;
+      if (meal_type === 'breakfast') type = 'cafe';
+      else if (meal_type === 'lunch') type = 'meal_takeaway';
+      else if (meal_type === 'dinner') type = 'restaurant';
+      console.log(`🍽️ סוג ארוחה: ${meal_type} -> ${type}`);
+    }
+
+    const isDefaultSearch = !radius && !search && !onlyVisited;
+    if (isDefaultSearch && location) {
+      const geoRes = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`
+      );
+      const geoData = await geoRes.json();
+      const city = geoData.results[0]?.address_components.find(c =>
+        c.types.includes("locality")
+      )?.long_name;
+
+      if (city) {
+        const cityRes = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+${city}&key=AIzaSyAakPIsptc8OsiLxO1mIhzEFmd_UuKmlL8`);
+        const cityData = await cityRes.json();
+        setPlaces(cityData.results.map(p => ({
+          name: p.name,
+          lat: p.geometry.location.lat,
+          lng: p.geometry.location.lng,
+          rating: p.rating || null,
+          distance_in_meters: null,
+          visited: false,
+          address: p.formatted_address || null,
+          icon: p.icon || null
+        })));
+        return;
+      }
+    }
+
+    // 🆕 שימוש בהעדפות המשתמש לבניית הפרמטרים
+    const searchRadius = userPreferences?.max_distance_preference || radius || 1000;
+    const minRating = userPreferences?.min_rating_preference || rating || 0;
+
+    console.log(`📍 רדיוס חיפוש: ${searchRadius}מ' (העדפה: ${userPreferences?.max_distance_preference}, ברירת מחדל: ${radius})`);
+    console.log(`⭐ דירוג מינימלי: ${minRating} (העדפה: ${userPreferences?.min_rating_preference}, ברירת מחדל: ${rating})`);
+
+    const query = new URLSearchParams({
+      lat: location.lat,
+      lng: location.lng,
+      radius: searchRadius,  // 🔧 משתמש בהעדפות!
+      search,
+      min_rating: minRating, // 🔧 משתמש בהעדפות!
+      type,
+      load_level: loadLevelFilter,
+      email: onlyVisited ? email : ''
+    }).toString();
+
+    console.log('🌐 שולח בקשה:', `http://localhost:8000/api/nearby/?${query}`);
+
+    const response = await fetch(`http://localhost:8000/api/nearby/?${query}`);
+    const data = await response.json();
+
+    console.log(`📥 התקבלו ${Array.isArray(data) ? data.length : 0} מסעדות מהשרת`);
+
+    // 🆕 סינון נוסף לפי סוגי אוכל מועדפים
+    const filteredPlaces = filterByUserPreferences(Array.isArray(data) ? data : []);
+    setPlaces(filteredPlaces);
+
+  } catch (err) {
+    console.error('⚠️ Error:', err);
+  }
+};
 
   const markAsVisited = async (place) => {
     const email = localStorage.getItem('userEmail');
@@ -465,14 +706,17 @@ const MapComponent = () => {
           </div>
 
           <img
-            src={
-              recommendedRestaurant.photo
-                ? getPhotoUrl(recommendedRestaurant.photo)
-                : "/images/default-restaurant.jpg"
-            }
-            alt={recommendedRestaurant.name}
-            className="recommendation-image"
-          />
+  src={
+    recommendedRestaurant.photo
+      ? getPhotoUrl(recommendedRestaurant.photo)
+      : getDefaultRestaurantImage()
+  }
+  alt={recommendedRestaurant.name}
+  className="recommendation-image"
+  onError={(e) => {
+    e.target.src = getDefaultRestaurantImage();
+  }}
+/>
 
           <div className="recommendation-title-with-logo">
             <p className="recommendation-title">{recommendedRestaurant.name}</p>
@@ -537,18 +781,21 @@ const MapComponent = () => {
       <header className="header">
         <h1 className="logo">🍴 RouteBite</h1>
         <div className="header-buttons">
-          {isLoggedIn ? (
-            <button
-              className="login-button"
-              onClick={() => {
-                localStorage.removeItem('userEmail');
-                setIsLoggedIn(false);
-                window.location.reload();
-              }}
-            >
-              התנתק
-            </button>
-          ) : (
+         {isLoggedIn ? (
+  <div className="auth-buttons">
+    <button className="preferences-button" onClick={() => window.location.href = '/preferences'}>
+      ⚙️ העדפות
+    </button>
+    <button className="login-button"  onClick={() => {
+            localStorage.removeItem('userEmail');
+            setIsLoggedIn(false);
+            window.location.reload();
+          }}>
+      התנתק
+    </button>
+  </div>
+) : (
+  // כפתורי התחברות/הרשמה
             <div className="auth-buttons">
               <button
                 className="login-button"
@@ -566,7 +813,23 @@ const MapComponent = () => {
           )}
         </div>
       </header>
-
+      {/* 🆕 הוסף את הקוד הזה כאן - אחרי header ולפני showLoginMessage */}
+    {/*{smartRecommendations && (*/}
+    {/*  <div className="smart-recommendations">*/}
+    {/*    <h3>🤖 המלצה חכמה בהתבסס על ההעדפות שלך</h3>*/}
+    {/*    <p>{smartRecommendations.message}</p>*/}
+    {/*    <div className="recommendation-details">*/}
+    {/*      <span>🍽️ {smartRecommendations.meal_type}</span>*/}
+    {/*      <span>⭐ דירוג מינימלי: {smartRecommendations.min_rating}</span>*/}
+    {/*      <span>📍 מרחק מקסימלי: {smartRecommendations.max_distance}מ'</span>*/}
+    {/*    </div>*/}
+    {/*  </div>*/}
+    {/*)}*/}
+      {!preferencesLoaded && isLoggedIn && (
+  <div className="loading-preferences">
+    <p>⏳ טוען העדפות...</p>
+  </div>
+)}
       {showLoginMessage && (
         <div className="login-message">
           <p>⚠️ פעולה זו דורשת התחברות למערכת</p>

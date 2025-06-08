@@ -538,7 +538,7 @@ body {
   border-radius: 12px;
   font-size: 14px;
   font-weight: bold;
-  color: white;
+  color: white; /* תיקון - שנה לצבע לבן */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -546,11 +546,15 @@ body {
 }
 
 .tag.green {
-  background-color: #4caf50;
+  background-color: #ea0101;
+  color: #4caf50;
+  border: 2px solid #4caf50;
 }
 
 .tag.blue {
-  background-color: #64b5f6;
+  background-color: #dd0e0e;
+  color: #64b5f6;
+  border: 2px solid #64b5f6;
 }
 
 .recommendation-title-with-logo {
@@ -1236,4 +1240,106 @@ body {
     flex: none;
     width: 100%;
   }
+}
+.preferences-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.preferences-button:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* המלצות חכמות */
+.smart-recommendations {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(168, 237, 234, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.smart-recommendations h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.smart-recommendations p {
+  margin: 0 0 15px 0;
+  color: #34495e;
+  font-size: 16px;
+}
+
+.recommendation-details {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.recommendation-details span {
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c3e50;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .preferences-button {
+    padding: 8px 16px;
+    font-size: 12px;
+    margin-left: 5px;
+  }
+
+  .smart-recommendations {
+    padding: 15px;
+    margin: 15px;
+  }
+
+  .smart-recommendations h3 {
+    font-size: 16px;
+  }
+
+  .smart-recommendations p {
+    font-size: 14px;
+  }
+
+  .recommendation-details {
+    gap: 8px;
+  }
+
+  .recommendation-details span {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .loading-preferences {
+  background: #e3f2fd;
+  padding: 10px;
+  text-align: center;
+  border-radius: 8px;
+  margin: 10px;
+  color: #1976d2;
+  font-weight: bold;
+}
 }

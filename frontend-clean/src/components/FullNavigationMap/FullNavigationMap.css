@@ -146,8 +146,7 @@
   font-weight: bold;
 }
 
-/* כפתורי ניווט */
-.navigation-action-bottom {
+/* כפתורי ניווט */  .navigation-action-bottom {
   margin: 20px 0;
   padding-top: 20px;
   border-top: 2px solid #e0e0e0;
