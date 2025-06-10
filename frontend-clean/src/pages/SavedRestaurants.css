@@ -1,35 +1,694 @@
+/* SavedRestaurants.css - עיצוב כמו בעמוד הבית עם איקס להסרה */
+
+body {
+  margin: 0;
+  font-family: 'Heebo', sans-serif;
+  direction: rtl;
+  background-color: #e3f2fd;
+}
+
 .saved-container {
-  padding: 20px;
-  max-width: 800px;
-  margin: auto;
+  min-height: 100vh;
+  background-color: #e3f2fd;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* כותרת עם כפתור חזרה - כמו בעמוד הבית */
+.saved-header {
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 3px;
+  animation: fadeInSlide 1s ease-out;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+  padding: 6px 20px;
+  background: white;
+}
+
+.home-button {
+  background-color: #42a5f5;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 10px 25px;
+  transition: background-color 0.3s ease;
+}
+
+.home-button:hover {
+  background-color: #2196f3;
+}
+
+.saved-title {
+  font-family: 'Rubik', sans-serif;
+  background: linear-gradient(90deg, #4A90E2, #00C9FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 36px;
+  padding: 0 10px;
+  margin: 0;
+}
+
+.header-spacer {
+  width: 120px;
+}
+
+/* תוכן ראשי */
+.saved-content {
+  width: 100%;
+  max-width: 1400px;
+  background-color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+/* הודעות מצב */
+.loading-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
   text-align: center;
 }
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e3f2fd;
+  border-top: 5px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background: #ffebee;
+  border: 2px solid #f44336;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  margin: 20px 0;
+  animation: fadeIn 0.5s ease;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.error-message p {
+  font-size: 18px;
+  color: #d32f2f;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.login-btn {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.empty-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-size: 18px;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.empty-message h3 {
+  font-size: 24px;
+  color: #333;
+  margin: 0 0 15px 0;
+}
+
+.empty-message p {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.explore-btn {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.explore-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+/* סטטיסטיקות */
+.saved-stats {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stats-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1976d2;
+}
+
+/* כרטיסיות מסעדות - בדיוק כמו בעמוד הבית */
+.saved-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
+  align-items: stretch;
+  justify-content: center;
   margin-top: 20px;
 }
 
-.card {
-  background: #f8f8f8;
-  padding: 20px;
+.saved-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: auto;
+  padding: 16px; /* מעט יותר פדינג */
+  border-radius: 16px;
+  background: #ffffff; /* רקע לבן */
+  width: 250px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* אפקט hover כמו בעמוד הבית */
+.saved-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.saved-card:hover::before {
+  transform: scaleX(1);
+}
+
+.saved-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.saved-card h4 {
+  margin: 0 40px 6px 0; /* מרחק מימין כדי לא לחפוף עם האיקס */
+  font-size: 20px;
+  font-weight: bolder;
+  line-height: 1.5;
+  color: #212121;
+  font-family: 'Heebo', sans-serif;
+}
+
+.saved-card p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* ✅ כפתור איקס להסרה - במקום לב */
+.remove-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(244, 67, 54, 0.1) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #f44336;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+  transition: all 0.3s ease;
+  color: #f44336;
+  z-index: 10;
+  font-weight: bold;
+}
+
+.remove-icon:hover {
+  background-color: #f44336 !important;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+/* ✅ גם אם נשאר heart-icon (לבטיחות), נעשה אותו איקס */
+.heart-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(244, 67, 54, 0.1) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #f44336;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+  transition: all 0.3s ease;
+  color: #f44336;
+  z-index: 10;
+  font-weight: bold;
+}
+
+.heart-icon:hover {
+  background-color: #f44336 !important;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.heart-icon.filled {
+  background-color: rgba(244, 67, 54, 0.15) !important;
+  border-color: #f44336;
+}
+
+/* כתובת מסעדה */
+.restaurant-address {
+  font-size: 13px;
+  color: #100f0f;
+  margin-top: 2px;
+  line-height: 1.3;
+  font-family: 'Heebo', sans-serif;
+}
+
+/* מידע משופר - דירוג ועומס - כמו בעמוד הבית */
+.enhanced-info-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.restaurant-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stars-container {
+  display: flex;
+  gap: 2px;
+}
+
+.star-label.full {
+  color: #ffd700;
+  text-shadow: 0 0 3px rgba(255, 215, 0, 0.5);
+  font-size: 18px;
+}
+
+.star-label.empty {
+  color: #ddd;
+  font-size: 18px;
+}
+
+.rating-number {
+  font-weight: bold;
+  color: #495057;
+  font-size: 14px;
+}
+
+.current-load-display {
+  display: flex;
+  justify-content: center;
+}
+
+.load-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
   border-radius: 20px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  text-align: right;
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.card h3 {
-  margin-bottom: 10px;
+.load-badge.נמוך {
+  background: linear-gradient(135deg, #4caf50, #45a049);
 }
 
-.card button {
-  margin-top: 10px;
+.load-badge.בינוני {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.load-badge.גבוה {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.load-icon {
+  font-size: 16px;
+}
+
+.distance-display {
+  display: flex;
+  justify-content: center;
+}
+
+.distance-badge {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.place-type-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  align-self: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* כפתורי פעולה - כמו בעמוד הבית */
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.navigate-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+  0% {
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(33, 150, 243, 0.6);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  }
+}
+
+.navigate-btn:hover {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+  animation: none;
+}
+
+.visit-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.visit-btn:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+/* הרחבת מידע עומס */
+.expand-toggle {
+  text-align: center;
+  padding-top: 8px;
+  margin-top: auto;
+}
+
+.expand-text {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.expand-button {
   background: #2196f3;
   color: white;
   border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 6px 12px;
+  border-radius: 20px;
   cursor: pointer;
+  font-size: 14px;
+  margin-top: auto;
+  align-self: center;
+  transition: background-color 0.2s;
+}
+
+.expand-button:hover {
+  background-color: #1e88e5;
+}
+
+/* תצוגת עומס */
+.popularity {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+  margin-top: auto;
+  flex-grow: 1;
+}
+
+/* תאריך שמירה - אינפו נוסף */
+.saved-date-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px;
+  background: #e8f5e8;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #2e7d32;
+}
+
+.date-icon {
+  font-size: 14px;
+}
+
+.date-text {
+  font-weight: bold;
+}
+
+/* כפתור צף לחזרה */
+.floating-home-btn {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255, 152, 0, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.floating-home-btn:hover {
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 6px 25px rgba(255, 152, 0, 0.6);
+}
+
+/* אנימציות */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.saved-card {
+  animation: fadeIn 0.6s ease;
+}
+
+.saved-card:nth-child(2) { animation-delay: 0.1s; }
+.saved-card:nth-child(3) { animation-delay: 0.2s; }
+.saved-card:nth-child(4) { animation-delay: 0.3s; }
+.saved-card:nth-child(5) { animation-delay: 0.4s; }
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .saved-header {
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .saved-title {
+    font-size: 28px;
+    order: -1;
+  }
+
+  .home-button {
+    padding: 10px 16px;
+    font-size: 14px;
+    width: auto;
+  }
+
+  .header-spacer {
+    display: none;
+  }
+
+  .saved-content {
+    padding: 20px 15px;
+  }
+
+  .saved-cards {
+    gap: 30px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .saved-card {
+    padding: 16px;
+    width: 100%;
+    max-width: 350px;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .navigate-btn,
+  .visit-btn {
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  .enhanced-info-bar {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .floating-home-btn {
+    bottom: 20px;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .saved-title {
+    font-size: 24px;
+  }
+
+  .saved-card {
+    border-radius: 16px;
+    padding: 16px;
+    width: 90%;
+  }
+
+  .saved-card h4 {
+    font-size: 18px;
+    margin: 0 35px 6px 0;
+  }
+
+  .remove-icon,
+  .heart-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
 }
