@@ -1,5 +1,6 @@
-from datetime import datetime
+# backend/user/views.py - עם העדפות אוכל לכל ארוחה
 
+from datetime import datetime
 from django.shortcuts import render
 from rest_framework import generics
 from .models import User
@@ -13,7 +14,6 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 import json
@@ -24,6 +24,7 @@ from rest_framework.decorators import api_view
 class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
 
 class LoginView(APIView):
     def post(self, request):
@@ -38,28 +39,21 @@ class LoginView(APIView):
             return Response({'error': 'אימייל או סיסמה שגויים ❌'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-
 class ForgotPasswordView(APIView):
     def post(self, request):
-        email = request.data.get('email', '').strip()  # ניקוי רווחים
+        email = request.data.get('email', '').strip()
 
-        # 🐞 הדפסה לדיבוג
         print(f"🔍 מייל שהתקבל מה-Frontend: '{email}'")
 
-        # שימוש בטוח עם חיפוש גמיש
         user = User.objects.filter(email__iexact=email).first()
 
         if user is None:
             return Response({'error': '❌ לא נמצא משתמש עם המייל הזה'}, status=status.HTTP_404_NOT_FOUND)
 
-        # ✅ יצירת טוקן ו־uid
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-
-        # ✅ לינק לשחזור סיסמה
         reset_link = f'http://localhost:3000/reset-password/{uid}/{token}'
 
-        # ✅ שליחת המייל
         send_mail(
             'שחזור סיסמה - RouteBite',
             f'שלום {user.first_name},\n\nלחץ על הקישור הבא כדי לאפס את הסיסמה שלך:\n{reset_link}\n\nאם לא ביקשת איפוס סיסמה – תוכל להתעלם מההודעה.',
@@ -90,35 +84,7 @@ class ResetPasswordView(APIView):
         else:
             return Response({'error': '❌ הקישור פג תוקף'}, status=status.HTTP_400_BAD_REQUEST)
 
-#
-# class ForgotPasswordView(APIView):
-#     def post(self, request):
-#         email = request.data.get('email')
-#         email = email.strip()
-#         print(f"🔍 מייל שהתקבל מה-Frontend: '{email}'")
-#         try:
-#             user = User.objects.get(email=email)
-#
-#             # ✅ יצירת טוקן ו־uid
-#             uid = urlsafe_base64_encode(force_bytes(user.pk))
-#             token = default_token_generator.make_token(user)
-#
-#             # ✅ לינק לשחזור סיסמה
-#             reset_link = f'http://localhost:3000/reset-password/{uid}/{token}'
-#
-#             # ✅ שליחת המייל
-#             send_mail(
-#                 'שחזור סיסמה - RouteBite',
-#                 f'שלום {user.username},\n\nלחץ על הקישור הבא כדי לאפס את הסיסמה שלך:\n{reset_link}\n\nאם לא ביקשת איפוס סיסמה – תוכל להתעלם מההודעה.',
-#                 'noreply@routebite.com',
-#                 [email],
-#                 fail_silently=False,
-#             )
-#
-#             return Response({'message': '✔ קישור לשחזור נשלח למייל שלך'}, status=status.HTTP_200_OK)
-#
-#         except User.DoesNotExist:
-#             return Response({'error': '❌ לא נמצא משתמש עם המייל הזה'}, status=status.HTTP_404_NOT_FOUND)
+
 class UserPreferencesView(APIView):
     """API לניהול העדפות משתמש"""
 
@@ -131,7 +97,7 @@ class UserPreferencesView(APIView):
         try:
             user = User.objects.get(email=email)
 
-            # יצירת מבנה נתונים מפורט
+            # יצירת מבנה נתונים מפורט עם העדפות לכל ארוחה
             preferences_data = {
                 'email': user.email,
                 'first_name': user.first_name,
@@ -142,11 +108,23 @@ class UserPreferencesView(APIView):
                     '%H:%M') if user.preferred_lunch_time else '13:00',
                 'preferred_dinner_time': user.preferred_dinner_time.strftime(
                     '%H:%M') if user.preferred_dinner_time else '19:00',
+
+                # 🆕 העדפות אוכל לכל ארוחה
+                'breakfast_foods': user.get_breakfast_foods(),
+                'lunch_foods': user.get_lunch_foods(),
+                'dinner_foods': user.get_dinner_foods(),
+
+                # תאימות לאחור
                 'preferred_food_types': user.preferred_food_types or '[]',
                 'preferred_food_types_list': user.get_preferred_food_types(),
+
                 'max_distance_preference': user.max_distance_preference or 2000,
                 'min_rating_preference': user.min_rating_preference or 3.0,
-                'current_meal_preference': self._get_current_meal_preference(user)
+                'current_meal_preference': self._get_current_meal_preference(user),
+
+                # 🆕 העדפת האוכל הנוכחית
+                'current_meal_food_preferences': user.get_current_meal_food_preferences(),
+                'all_meal_preferences': user.get_all_meal_preferences()
             }
 
             return Response(preferences_data, status=status.HTTP_200_OK)
@@ -169,7 +147,7 @@ class UserPreferencesView(APIView):
             print(f"🔧 מעדכן העדפות עבור: {email}")
             print(f"📋 נתונים שהתקבלו: {request.data}")
 
-            # עדכון העדפות שעות - בצורה בטוחה
+            # עדכון העדפות שעות
             if 'preferred_breakfast_time' in request.data and request.data['preferred_breakfast_time']:
                 try:
                     user.preferred_breakfast_time = datetime.strptime(request.data['preferred_breakfast_time'],
@@ -190,7 +168,26 @@ class UserPreferencesView(APIView):
                 except ValueError as ve:
                     print(f"⚠️ שגיאה בפרסור שעת ערב: {ve}")
 
-            # עדכון העדפות נוספות
+            # 🆕 עדכון העדפות אוכל לכל ארוחה
+            if 'breakfast_foods' in request.data:
+                breakfast_foods = request.data['breakfast_foods']
+                if isinstance(breakfast_foods, list):
+                    user.set_breakfast_foods(breakfast_foods)
+                    print(f"🌅 עדכן אוכל בוקר: {breakfast_foods}")
+
+            if 'lunch_foods' in request.data:
+                lunch_foods = request.data['lunch_foods']
+                if isinstance(lunch_foods, list):
+                    user.set_lunch_foods(lunch_foods)
+                    print(f"☀️ עדכן אוכל צהריים: {lunch_foods}")
+
+            if 'dinner_foods' in request.data:
+                dinner_foods = request.data['dinner_foods']
+                if isinstance(dinner_foods, list):
+                    user.set_dinner_foods(dinner_foods)
+                    print(f"🌙 עדכן אוכל ערב: {dinner_foods}")
+
+            # תאימות לאחור - העדפות כלליות
             if 'preferred_food_types' in request.data:
                 food_types = request.data['preferred_food_types']
                 if isinstance(food_types, list):
@@ -202,6 +199,7 @@ class UserPreferencesView(APIView):
                     except json.JSONDecodeError:
                         user.preferred_food_types = food_types
 
+            # עדכון העדפות נוספות
             if 'max_distance_preference' in request.data:
                 try:
                     user.max_distance_preference = int(request.data['max_distance_preference'])
@@ -226,9 +224,13 @@ class UserPreferencesView(APIView):
                     '%H:%M') if user.preferred_lunch_time else '13:00',
                 'preferred_dinner_time': user.preferred_dinner_time.strftime(
                     '%H:%M') if user.preferred_dinner_time else '19:00',
+                'breakfast_foods': user.get_breakfast_foods(),
+                'lunch_foods': user.get_lunch_foods(),
+                'dinner_foods': user.get_dinner_foods(),
                 'preferred_food_types_list': user.get_preferred_food_types(),
                 'max_distance_preference': user.max_distance_preference,
                 'min_rating_preference': user.min_rating_preference,
+                'current_meal_food_preferences': user.get_current_meal_food_preferences(),
             }
 
             return Response({
@@ -240,7 +242,6 @@ class UserPreferencesView(APIView):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             print(f"🚨 שגיאה בעדכון העדפות: {str(e)}")
-            print(f"📋 סוג השגיאה: {type(e)}")
             import traceback
             traceback.print_exc()
             return Response({'error': f'שגיאה בשמירת ההעדפות: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -263,7 +264,7 @@ class UserPreferencesView(APIView):
 
 @api_view(['GET'])
 def get_smart_recommendations(request):
-    """המלצות חכמות בהתבסס על העדפות המשתמש"""
+    """🆕 המלצות חכמות מעודכנות עם העדפות לפי ארוחה"""
     email = request.GET.get('email')
     lat = request.GET.get('lat')
     lng = request.GET.get('lng')
@@ -276,15 +277,19 @@ def get_smart_recommendations(request):
 
         # קבלת העדפות נוכחיות
         meal_type, preferred_time = user.get_current_meal_preference()
-        preferred_foods = user.get_preferred_food_types()
+
+        # 🆕 קבלת העדפות האוכל הספציפיות לארוחה הנוכחית
+        current_meal_foods = user.get_current_meal_food_preferences()
+        all_meal_prefs = user.get_all_meal_preferences()
 
         recommendations = {
             'meal_type': meal_type,
             'preferred_time': preferred_time.strftime('%H:%M') if preferred_time else None,
-            'preferred_foods': preferred_foods,
+            'current_meal_foods': current_meal_foods,
+            'all_meal_preferences': all_meal_prefs,
             'max_distance': user.max_distance_preference,
             'min_rating': user.min_rating_preference,
-            'message': f'המלצות ל{meal_type} בשעה {preferred_time.strftime("%H:%M") if preferred_time else "לא הוגדר"}'
+            'message': f'המלצות ל{meal_type} בשעה {preferred_time.strftime("%H:%M") if preferred_time else "לא הוגדר"} - {", ".join(current_meal_foods) if current_meal_foods else "אין העדפות ספציפיות"}'
         }
 
         return Response(recommendations, status=200)

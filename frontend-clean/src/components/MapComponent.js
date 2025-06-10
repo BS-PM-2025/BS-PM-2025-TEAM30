@@ -202,6 +202,8 @@ const loadSmartRecommendations = async () => {
   }
 };
 
+// עדכון לפונקציית filterByUserPreferences ב-MapComponent.js
+
 const filterByUserPreferences = (places) => {
   console.log('🎯 filterByUserPreferences נקראה');
   console.log('📊 מספר מסעדות לפני סינון:', places.length);
@@ -212,8 +214,30 @@ const filterByUserPreferences = (places) => {
     return places;
   }
 
-  const preferredFoodTypes = userPreferences.preferred_food_types_list || [];
-  console.log('🍕 סוגי אוכל מועדפים:', preferredFoodTypes);
+  // 🆕 קבלת ההעדפות הספציפיות לארוחה הנוכחית
+  const currentHour = new Date().getHours();
+  let currentMealType = 'lunch';
+
+  if (currentHour < 12) currentMealType = 'breakfast';
+  else if (currentHour >= 18) currentMealType = 'dinner';
+
+  console.log(`🕐 שעה נוכחית: ${currentHour}, ארוחה: ${currentMealType}`);
+
+  // 🆕 בחירת סוגי האוכל הרלוונטיים לארוחה הנוכחית
+  let preferredFoodTypes = [];
+
+  if (userPreferences.current_meal_food_preferences) {
+    // השתמש בהעדפות הנוכחיות מהשרת
+    preferredFoodTypes = userPreferences.current_meal_food_preferences;
+  } else if (userPreferences[`${currentMealType}_foods`]) {
+    // fallback לשדות הישירים
+    preferredFoodTypes = userPreferences[`${currentMealType}_foods`];
+  } else if (userPreferences.preferred_food_types_list) {
+    // fallback להעדפות כלליות
+    preferredFoodTypes = userPreferences.preferred_food_types_list;
+  }
+
+  console.log(`🍽️ סוגי אוכל מועדפים ל-${currentMealType}:`, preferredFoodTypes);
 
   if (preferredFoodTypes.length === 0) {
     console.log('📝 אין העדפות אוכל ספציפיות - מציג הכל');
@@ -228,27 +252,53 @@ const filterByUserPreferences = (places) => {
 
       const matches =
         placeName.includes(foodTypeLower) ||
-        (foodTypeLower === 'burger' && (placeName.includes('hamburger') || placeName.includes('burger'))) ||
-        (foodTypeLower === 'pizza' && placeName.includes('pizz')) ||
-        (foodTypeLower === 'sushi' && placeName.includes('sush')) ||
-        (foodTypeLower === 'mexican' && (placeName.includes('mexic') || placeName.includes('taco'))) ||
-        (foodTypeLower === 'cafe' && (placeName.includes('caf') || placeName.includes('קפה')));
+
+        // התאמות ספציפיות לארוחת בוקר
+        (currentMealType === 'breakfast' && (
+          (foodTypeLower === 'cafe' && (placeName.includes('caf') || placeName.includes('קפה'))) ||
+          (foodTypeLower === 'bakery' && (placeName.includes('baker') || placeName.includes('מאפי'))) ||
+          (foodTypeLower === 'breakfast' && (placeName.includes('breakfast') || placeName.includes('בוקר'))) ||
+          (foodTypeLower === 'sandwich' && placeName.includes('sandwich'))
+        )) ||
+
+        // התאמות ספציפיות לארוחת צהריים
+        (currentMealType === 'lunch' && (
+          (foodTypeLower === 'burger' && (placeName.includes('hamburger') || placeName.includes('burger'))) ||
+          (foodTypeLower === 'pizza' && placeName.includes('pizz')) ||
+          (foodTypeLower === 'falafel' && placeName.includes('falafel')) ||
+          (foodTypeLower === 'hummus' && placeName.includes('hummus')) ||
+          (foodTypeLower === 'shawarma' && placeName.includes('shawar'))
+        )) ||
+
+        // התאמות ספציפיות לארוחת ערב
+        (currentMealType === 'dinner' && (
+          (foodTypeLower === 'sushi' && placeName.includes('sush')) ||
+          (foodTypeLower === 'steak' && placeName.includes('steak')) ||
+          (foodTypeLower === 'fish' && (placeName.includes('fish') || placeName.includes('דג'))) ||
+          (foodTypeLower === 'bar' && placeName.includes('bar')) ||
+          (foodTypeLower === 'wine' && placeName.includes('wine'))
+        )) ||
+
+        // התאמות כלליות
+        (foodTypeLower === 'asian' && (placeName.includes('asia') || placeName.includes('chinese') || placeName.includes('thai'))) ||
+        (foodTypeLower === 'italian' && (placeName.includes('italian') || placeName.includes('pasta'))) ||
+        (foodTypeLower === 'mexican' && (placeName.includes('mexic') || placeName.includes('taco')));
 
       if (matches) {
-        console.log(`✅ "${place.name}" תואם "${foodType}"`);
+        console.log(`✅ "${place.name}" תואם "${foodType}" עבור ${currentMealType}`);
       }
 
       return matches;
     });
 
     if (!hasPreferredFood) {
-      console.log(`❌ "${place.name}" לא תואם העדפות: ${preferredFoodTypes.join(', ')}`);
+      console.log(`❌ "${place.name}" לא תואם העדפות ${currentMealType}: ${preferredFoodTypes.join(', ')}`);
     }
 
     return hasPreferredFood;
   });
 
-  console.log(`📈 תוצאת סינון: ${places.length} -> ${filteredPlaces.length} מסעדות`);
+  console.log(`📈 תוצאת סינון (${currentMealType}): ${places.length} -> ${filteredPlaces.length} מסעדות`);
   return filteredPlaces;
 };
   const handleSave = async (place) => {
