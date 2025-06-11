@@ -482,3 +482,63 @@
 .directions-section::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+.transport-toggle-button {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.transport-options-panel {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  margin: 10px;
+  max-width: 400px;
+}
+
+.transport-options-panel h4 {
+  margin-bottom: 10px;
+}
+
+.transport-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.transport-icon {
+  font-size: 20px;
+  margin-right: 10px;
+}
+
+.transport-price {
+  font-weight: bold;
+  color: #333;
+}
+.transport-options-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+.transport-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.transport-link {
+  margin-right: 10px;
+  color: #1976d2;
+  text-decoration: none;
+}
+.transport-link:hover {
+  text-decoration: underline;
+}

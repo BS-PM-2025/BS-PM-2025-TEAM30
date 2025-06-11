@@ -28,7 +28,35 @@ const FullNavigationMap = ({
   const [routeInfo, setRouteInfo] = useState(null);
 
   const mapRef = useRef(null);
+  // 🆕 תחבורה
+  const [showTransportOptions, setShowTransportOptions] = useState(false);
+  const transportOptions = [
+    {
+      icon: '🛴',
+      name: 'קורקינט חשמלי',
+      price: '₪5.90 לשעה',
+      url: 'https://easy.co.il/list/Electric-scooter-Hire'
+    },
+    {
+      icon: '🚍',
+      name: 'אוטובוס אגד',
+      price: '₪8.90 לנסיעה',
+      url: 'https://www.egged.co.il/'
+    },
+    {
+      icon: '🚗',
+      name: 'מונית',
+      price: '₪25–₪60 לפי מרחק',
+      url: 'https://www.gett.com/il/'
+    },
+    {
+      icon: '🚲',
+      name: 'אופניים שיתופיים',
+      price: '₪6 לשעה',
+      url: 'https://www.metrofun.co.il/en/'
+    },
 
+  ];
   // קבלת הוראות נסיעה מפורטות מגוגל
   useEffect(() => {
     if (!isLoaded || !origin || !destination) return;
@@ -174,13 +202,43 @@ const FullNavigationMap = ({
         </div>
 
         <div className="nav-controls">
+          <button onClick={() => setShowTransportOptions(p => !p)} className="transport-toggle-button">
+            🚖 אפשרויות תחבורה
+          </button>
           <button onClick={openGoogleMapsNavigation} className="start-navigation-btn">
             🚗 התחל ניווט בגוגל מפות
           </button>
           <button onClick={onClose} className="close-nav-btn">✕</button>
         </div>
       </div>
-
+      {/* 🆕 הצגת אפשרויות תחבורה */}
+      {showTransportOptions && (
+        <div className="transport-options-panel">
+          <h4>בחר אמצעי תחבורה:</h4>
+          <ul>
+            {transportOptions.map((opt, index) => (
+              <li key={index} className="transport-item">
+                <span className="transport-icon">{opt.icon}</span>
+                <span className="transport-name">{opt.name}</span>
+                <span className="transport-price">{opt.price}</span>
+                <a
+                  href={opt.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transport-link"
+                >
+                  לפרטים
+                </a>
+              </li>
+            ))}
+            <li className="transport-item">
+              <span className="transport-icon">🚶</span>
+              <span className="transport-name">הליכה</span>
+              <span className="transport-price">חינם</span>
+            </li>
+          </ul>
+        </div>
+      )}
       {/* תוכן ראשי - צד אל צד */}
       <div className="navigation-content">
         {/* מפה בצד שמאל */}
