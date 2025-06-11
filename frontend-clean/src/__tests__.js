@@ -916,3 +916,33 @@ describe('🗺️ MapComponent – סינון לפי עומס נוכחי', () =>
     });
   });
 });
+it('פותח חלון ניווט מפורט עם מיקום ויעד', async () => {
+  localStorage.setItem('userEmail', 'test@example.com');
+
+  jest.spyOn(global, 'fetch').mockImplementation(() => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve([
+      { name: 'פלאפל הגבעה', lat: 32.1, lng: 34.8 }
+    ])
+  }));
+
+  const mockGeolocation = {
+    getCurrentPosition: jest.fn((success) =>
+      success({ coords: { latitude: 32.1, longitude: 34.8 } })
+    )
+  };
+  global.navigator.geolocation = mockGeolocation;
+
+  render(<SavedRestaurants />);
+
+  await waitFor(() => {
+    expect(screen.getByText('פלאפל הגבעה')).toBeInTheDocument();
+  });
+
+  const navBtn = screen.getByText('🧭 נווט למסעדה');
+  fireEvent.click(navBtn);
+
+  await waitFor(() => {
+    expect(screen.getByText('FullNavigationMap')).toBeInTheDocument();
+  });
+});
