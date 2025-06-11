@@ -1,3 +1,6 @@
+
+
+
 import React, { useEffect, useState } from 'react';
 import './SavedRestaurants.css';
 import FullNavigationMap from '../components/FullNavigationMap/FullNavigationMap';
@@ -158,6 +161,7 @@ const SavedRestaurants = () => {
       }
     };
 
+
     fetchSaved();
   }, [email]);
 
@@ -215,6 +219,7 @@ const SavedRestaurants = () => {
           lng: restaurant.lng
         })
       });
+
 
       // אם לא עובד, נסה דרך שונה
       if (!res.ok) {
@@ -278,6 +283,8 @@ const SavedRestaurants = () => {
     );
   }
 
+
+
   return (
     <div className="saved-container">
       {/* כותרת עם כפתור חזרה */}
@@ -285,7 +292,7 @@ const SavedRestaurants = () => {
         <button onClick={goToHome} className="home-button">
           🏠 חזרה לבית
         </button>
-        <h1 className="saved-title">🍽️ המסעדות השמורות שלי</h1>
+        <h1 className="saved-title">🍽️ המסעדות המועדפות שלי</h1>
         <div className="header-spacer"></div>
       </header>
 
@@ -448,6 +455,7 @@ const SavedRestaurants = () => {
                       </div>
                     )}
 
+
                     {/* תאריך שמירה */}
                     {place.saved_at && (
                       <div className="saved-date-info">
@@ -465,6 +473,7 @@ const SavedRestaurants = () => {
         )}
       </div>
 
+
       {/* כפתור צף לחזרה לבית */}
       <button onClick={goToHome} className="floating-home-btn" title="חזרה לעמוד הבית">
         🏠
@@ -472,5 +481,6 @@ const SavedRestaurants = () => {
     </div>
   );
 };
+
 
 export default SavedRestaurants;
