@@ -621,7 +621,7 @@ EOF
 
     post {
         always {
-            node {  // FIXED: Wrapped the entire post section in a node block
+            node('any') {  // FIXED: Added required label parameter
                 script {
                     // חישוב מטריקות Pipeline מלאות
                     def pipelineEndTime = new Date().time
