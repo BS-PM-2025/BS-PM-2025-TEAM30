@@ -220,9 +220,10 @@ EOF
                         npm pkg set jest.coverageDirectory="coverage"
                         npm pkg set jest.coverageReporters='["text", "lcov", "html"]'
 
-                        # יצירת קובץ setupTests.js בסיסי
-                        mkdir -p src
-                        cat > src/setupTests.js << 'EOF'
+                        # יצירת קובץ setupTests.js בסיסי רק אם לא קיים
+                        if [ ! -f "src/setupTests.js" ]; then
+                            mkdir -p src
+                            cat > src/setupTests.js << 'EOF'
 import '@testing-library/jest-dom';
 
 // Basic mocks
@@ -241,23 +242,12 @@ global.matchMedia = global.matchMedia || function() {
   };
 };
 EOF
-
-                        # יצירת בדיקה בסיסית אם לא קיימת
-                        if [ ! -f "src/App.test.js" ]; then
-                            cat > src/App.test.js << 'EOF'
-import { render, screen } from '@testing-library/react';
-import App from './App';
-
-test('renders app without crashing', () => {
-  render(<App />);
-  expect(document.body).toBeInTheDocument();
-});
-
-test('basic functionality test', () => {
-  expect(true).toBe(true);
-});
-EOF
                         fi
+
+                        # הסרת יצירת בדיקות דמה - נשתמש בבדיקות האמיתיות!
+                        echo "Using existing test files..."
+                        echo "Found test files:"
+                        find src -name "*.test.js" -o -name "*Tests*" | head -10
 
                         echo "Frontend installation completed!"
                     '''
