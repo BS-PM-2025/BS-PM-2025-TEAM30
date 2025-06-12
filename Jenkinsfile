@@ -621,7 +621,7 @@ EOF
 
     post {
         always {
-            node('any') {  // FIXED: Added required label parameter
+            node {  // FIXED: Removed the label parameter since your Jenkins doesn't support 'any'
                 script {
                     // חישוב מטריקות Pipeline מלאות
                     def pipelineEndTime = new Date().time
