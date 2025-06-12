@@ -621,45 +621,44 @@ EOF
 
     post {
         always {
-            node {  // FIXED: Removed the label parameter since your Jenkins doesn't support 'any'
-                script {
-                    // חישוב מטריקות Pipeline מלאות
-                    def pipelineEndTime = new Date().time
-                    def totalDurationMs = pipelineEndTime - (env.PIPELINE_START_TIME as long)
-                    def totalDurationSec = (totalDurationMs / 1000) as Integer
+            script {
+                // חישוב מטריקות Pipeline מלאות ללא workspace
+                def pipelineEndTime = new Date().time
+                def totalDurationMs = pipelineEndTime - (env.PIPELINE_START_TIME as long)
+                def totalDurationSec = (totalDurationMs / 1000) as Integer
 
-                    // חישוב זמני stages
-                    def backendInstallTime = calculateStageDuration(env.BACKEND_INSTALL_START, env.BACKEND_INSTALL_END)
-                    def backendTestTime = env.BACKEND_TEST_DURATION ?: "4"
-                    def frontendInstallTime = calculateStageDuration(env.FRONTEND_INSTALL_START, env.FRONTEND_INSTALL_END)
-                    def frontendTestTime = env.FRONTEND_TEST_DURATION ?: "5"
-                    def frontendBuildTime = env.BUILD_DURATION ?: "0"
+                // חישוב זמני stages
+                def backendInstallTime = calculateStageDuration(env.BACKEND_INSTALL_START, env.BACKEND_INSTALL_END)
+                def backendTestTime = env.BACKEND_TEST_DURATION ?: "4"
+                def frontendInstallTime = calculateStageDuration(env.FRONTEND_INSTALL_START, env.FRONTEND_INSTALL_END)
+                def frontendTestTime = env.FRONTEND_TEST_DURATION ?: "5"
+                def frontendBuildTime = env.BUILD_DURATION ?: "0"
 
-                    // חישוב אחוז הצלחת בדיקות עם טיפול בשגיאות (תיקון הפונקציה)
-                    def backendTotal = 6
-                    def frontendTotal = 2
-                    def backendPassed = 6
-                    def frontendPassed = 2
+                // חישוב אחוז הצלחת בדיקות עם טיפול בשגיאות
+                def backendTotal = 6
+                def frontendTotal = 2
+                def backendPassed = 6
+                def frontendPassed = 2
 
-                    try {
-                        backendTotal = (env.BACKEND_TESTS_TOTAL?.trim() ?: "6") as Integer
-                        frontendTotal = (env.FRONTEND_TESTS_TOTAL?.trim() ?: "2") as Integer
-                        backendPassed = (env.BACKEND_TESTS_PASSED?.trim() ?: "6") as Integer
-                        frontendPassed = (env.FRONTEND_TESTS_PASSED?.trim() ?: "2") as Integer
-                    } catch (Exception e) {
-                        echo "Warning: Error parsing test numbers, using defaults"
-                    }
+                try {
+                    backendTotal = (env.BACKEND_TESTS_TOTAL?.trim() ?: "6") as Integer
+                    frontendTotal = (env.FRONTEND_TESTS_TOTAL?.trim() ?: "2") as Integer
+                    backendPassed = (env.BACKEND_TESTS_PASSED?.trim() ?: "6") as Integer
+                    frontendPassed = (env.FRONTEND_TESTS_PASSED?.trim() ?: "2") as Integer
+                } catch (Exception e) {
+                    echo "Warning: Error parsing test numbers, using defaults"
+                }
 
-                    def totalTests = backendTotal + frontendTotal
-                    def totalPassed = backendPassed + frontendPassed
-                    def passRate = totalTests > 0 ? ((totalPassed * 100) / totalTests) as Integer : 100
+                def totalTests = backendTotal + frontendTotal
+                def totalPassed = backendPassed + frontendPassed
+                def passRate = totalTests > 0 ? ((totalPassed * 100) / totalTests) as Integer : 100
 
-                    // תיקון הפונקציה round()
-                    def minutesDecimal = totalDurationSec / 60
-                    def roundedMinutes = String.format("%.2f", minutesDecimal)
+                // תיקון הפונקציה round()
+                def minutesDecimal = totalDurationSec / 60
+                def roundedMinutes = String.format("%.2f", minutesDecimal)
 
-                    // הכנת דוח מטריקות מקיף
-                    def metricsReport = """
+                // הכנת דוח מטריקות מקיף
+                def metricsReport = """
 =========================================
        COMPREHENSIVE METRICS REPORT
 =========================================
@@ -735,203 +734,16 @@ Timestamp: ${new Date().format('yyyy-MM-dd HH:mm:ss')}
 =========================================
 """
 
-                    echo metricsReport
-                    writeFile file: 'comprehensive_metrics_report.txt', text: metricsReport
+                echo metricsReport
 
-                    // יצירת דוח HTML יפה למטריקות
-                    def htmlReport = """
-<!DOCTYPE html>
-<html dir="rtl" lang="he">
-<head>
-    <title>Pipeline Metrics Dashboard - Team 30</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            direction: rtl;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .header h1 { margin: 0; font-size: 2.5em; font-weight: 300; }
-        .header p { margin: 10px 0 0 0; opacity: 0.8; }
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 30px;
-        }
-        .metric-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            border-right: 5px solid #3498db;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .metric-card:hover { transform: translateY(-2px); }
-        .metric-card.success { border-right-color: #27ae60; }
-        .metric-card.warning { border-right-color: #f39c12; }
-        .metric-card.danger { border-right-color: #e74c3c; }
-        .metric-card h3 {
-            margin: 0 0 15px 0;
-            color: #2c3e50;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-        }
-        .metric-card .icon {
-            margin-left: 10px;
-            font-size: 1.5em;
-        }
-        .metric-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 10px 0;
-        }
-        .metric-details {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            line-height: 1.4;
-            text-align: right;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .status-success { background: #27ae60; color: white; }
-        .status-failure { background: #e74c3c; color: white; }
-        .footer {
-            background: #ecf0f1;
-            padding: 20px;
-            text-align: center;
-            color: #7f8c8d;
-            border-top: 1px solid #bdc3c7;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Pipeline Metrics Dashboard</h1>
-            <p>Build #${env.BUILD_NUMBER} • Team 30 • ${new Date().format('dd/MM/yyyy HH:mm:ss')}</p>
-            <span class="status-badge ${env.QUALITY_GATE_PASSED == 'true' ? 'status-success' : 'status-failure'}">
-                ${env.QUALITY_GATE_PASSED == 'true' ? 'SUCCESS' : 'FAILED'}
-            </span>
-        </div>
-
-        <div class="metrics-grid">
-            <div class="metric-card ${env.QUALITY_GATE_PASSED == 'true' ? 'success' : 'danger'}">
-                <h3><span class="icon">${env.QUALITY_GATE_PASSED == 'true' ? '✅' : '❌'}</span>Quality Gate</h3>
-                <div class="metric-value">${env.QUALITY_GATE_PASSED == 'true' ? 'PASSED' : 'FAILED'}</div>
-                <div class="metric-details">
-                    ${env.QUALITY_ISSUES ?: 'כל בדיקות האיכות עברו בהצלחה'}
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <h3><span class="icon">⏱️</span>זמן Pipeline</h3>
-                <div class="metric-value">${totalDurationSec} שניות</div>
-                <div class="metric-details">
-                    ${roundedMinutes} דקות סה"כ<br>
-                    זמן Lead Time מcommit עד deployment-ready
-                </div>
-            </div>
-
-            <div class="metric-card success">
-                <h3><span class="icon">🧪</span>כיסוי קוד Backend</h3>
-                <div class="metric-value">${env.BACKEND_COVERAGE ?: '45%'}</div>
-                <div class="metric-details">
-                    בדיקות: ${env.BACKEND_TESTS_PASSED ?: '6'} עברו, ${env.BACKEND_TESTS_FAILED ?: '0'} נכשלו<br>
-                    זמן: ${backendTestTime} שניות
-                </div>
-            </div>
-
-            <div class="metric-card success">
-                <h3><span class="icon">🎨</span>כיסוי קוד Frontend</h3>
-                <div class="metric-value">${env.FRONTEND_COVERAGE ?: '85%'}</div>
-                <div class="metric-details">
-                    בדיקות: ${env.FRONTEND_TESTS_PASSED ?: '2'} עברו, ${env.FRONTEND_TESTS_FAILED ?: '0'} נכשלו<br>
-                    זמן: ${frontendTestTime} שניות
-                </div>
-            </div>
-
-            <div class="metric-card ${env.BUILD_SUCCESS == 'true' ? 'success' : 'danger'}">
-                <h3><span class="icon">🏗️</span>סטטוס Build</h3>
-                <div class="metric-value">${env.BUILD_SUCCESS == 'true' ? 'SUCCESS' : 'FAILED'}</div>
-                <div class="metric-details">
-                    גודל: ${env.BUILD_SIZE_MB ?: '0'} MB<br>
-                    זמן: ${frontendBuildTime} שניות
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <h3><span class="icon">📊</span>DevOps KPIs</h3>
-                <div class="metric-details">
-                    <strong>Deployment Frequency:</strong> Build #${env.BUILD_NUMBER}<br>
-                    <strong>Deployment Speed:</strong> ${totalDurationSec}s<br>
-                    <strong>Change Failure Rate:</strong> ${currentBuild.result == 'FAILURE' ? 'Failed' : 'Passed'}<br>
-                    <strong>Test Pass Rate:</strong> ${passRate}%
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <h3><span class="icon">🔍</span>מידע Git</h3>
-                <div class="metric-details">
-                    <strong>Commit:</strong> ${env.GIT_COMMIT_SHORT ?: 'Unknown'}<br>
-                    <strong>Branch:</strong> ${env.GIT_BRANCH_NAME ?: 'Unknown'}<br>
-                    <strong>זמן ביצוע:</strong> ${new Date().format('dd/MM/yyyy HH:mm:ss')}
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <h3><span class="icon">⚡</span>פירוט ביצועים</h3>
-                <div class="metric-details">
-                    <strong>התקנת Backend:</strong> ${backendInstallTime}s<br>
-                    <strong>בדיקות Backend:</strong> ${backendTestTime}s<br>
-                    <strong>התקנת Frontend:</strong> ${frontendInstallTime}s<br>
-                    <strong>בדיקות Frontend:</strong> ${frontendTestTime}s<br>
-                    <strong>בניית Frontend:</strong> ${frontendBuildTime}s
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>נוצר אוטומטית על ידי Jenkins Pipeline • Team 30 CICD Metrics</p>
-            <p>לדוחות מפורטים, בדקו את קבצי ה-artifacts שנוצרו</p>
-        </div>
-    </div>
-</body>
-</html>
-"""
-
-                    writeFile file: 'metrics_dashboard.html', text: htmlReport
-
-                    // שמירת כל הartifacts
-                    archiveArtifacts artifacts: 'comprehensive_metrics_report.txt,metrics_dashboard.html', allowEmptyArchive: false
-                }
+                // Note: File writing capabilities are limited without workspace context
+                echo "📊 Comprehensive metrics displayed above"
+                echo "📈 Key Performance Indicators (KPIs):"
+                echo "   • Backend Coverage: ${env.BACKEND_COVERAGE ?: '45%'}"
+                echo "   • Frontend Coverage: ${env.FRONTEND_COVERAGE ?: '85%'}"
+                echo "   • Quality Gate: ${env.QUALITY_GATE_PASSED == 'true' ? 'PASSED' : 'FAILED'}"
+                echo "   • Total Duration: ${totalDurationSec} seconds"
+                echo "   • Test Pass Rate: ${passRate}%"
             }
         }
         success {
