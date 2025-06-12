@@ -16,4 +16,5 @@ urlpatterns = [
 
     # מחיקת ביקורת
     path('delete/<int:review_id>/', views.delete_review, name='delete_review'),
+
 ]

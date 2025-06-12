@@ -12,6 +12,10 @@ const mapContainerStyle = {
   width: '100%',
   height: '400px',
 };
+const isAdmin = () => {
+  const email = localStorage.getItem('userEmail');
+  return email === 'adistamker88@gmail.com';
+};
 
 const fetchPopularData = async (placeName, callback) => {
    // 👇 השבתת Outscraper זמנית כדי לא לבזבז קרדיט
@@ -892,6 +896,16 @@ const getDefaultRestaurantImage = () => {
     <button className="reviews-button" onClick={() => window.location.href = '/my-reviews'}>
       📝 הביקורות שלי
     </button>
+    {/* ✅ כפתור מנהל (רק אם המשתמש הוא אדמין) */}
+    {isAdmin() && (
+      <button
+        className="login-button"
+        style={{ backgroundColor: '#333', color: '#fff', marginRight: '10px' }}
+        onClick={() => window.location.href = '/admin-dashboard'}
+      >
+        🔧 ניהול מערכת
+      </button>
+    )}
     <button className="login-button"  onClick={() => {
             localStorage.removeItem('userEmail');
             setIsLoggedIn(false);

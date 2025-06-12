@@ -12,6 +12,8 @@ import SavedRestaurants from './pages/SavedRestaurants';
 import UserPreferences from './pages/UserPreferences';
 import WriteReview from './pages/WriteReview';
 import MyReviews from './pages/MyReviews';
+import AdminDashboard from './pages/AdminDashboard';
+import StatisticsDashboard from './pages/StatisticsDashboard';
 
 function App() {
   return (
@@ -30,6 +32,9 @@ function App() {
         <Route path="/preferences" element={<UserPreferences />} />
         <Route path="/write-review" element={<WriteReview />} />
         <Route path="/my-reviews" element={<MyReviews />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/statistics" element={<StatisticsDashboard />} />
+
       </Routes>
     </Router>
   );

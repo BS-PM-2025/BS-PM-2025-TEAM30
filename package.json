@@ -4,6 +4,7 @@
     "ajv-keywords": "^5.1.0",
     "react-router-dom": "^7.5.1",
     "react-scripts": "^3.0.1",
+    "recharts": "^2.15.3",
     "schema-utils": "^4.2.0"
   },
   "devDependencies": {
