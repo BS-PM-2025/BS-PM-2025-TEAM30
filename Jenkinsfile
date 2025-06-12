@@ -621,44 +621,45 @@ EOF
 
     post {
         always {
-            script {
-                // חישוב מטריקות Pipeline מלאות
-                def pipelineEndTime = new Date().time
-                def totalDurationMs = pipelineEndTime - (env.PIPELINE_START_TIME as long)
-                def totalDurationSec = (totalDurationMs / 1000) as Integer
+            node {  // FIXED: Wrapped the entire post section in a node block
+                script {
+                    // חישוב מטריקות Pipeline מלאות
+                    def pipelineEndTime = new Date().time
+                    def totalDurationMs = pipelineEndTime - (env.PIPELINE_START_TIME as long)
+                    def totalDurationSec = (totalDurationMs / 1000) as Integer
 
-                // חישוב זמני stages
-                def backendInstallTime = calculateStageDuration(env.BACKEND_INSTALL_START, env.BACKEND_INSTALL_END)
-                def backendTestTime = env.BACKEND_TEST_DURATION ?: "4"
-                def frontendInstallTime = calculateStageDuration(env.FRONTEND_INSTALL_START, env.FRONTEND_INSTALL_END)
-                def frontendTestTime = env.FRONTEND_TEST_DURATION ?: "5"
-                def frontendBuildTime = env.BUILD_DURATION ?: "0"
+                    // חישוב זמני stages
+                    def backendInstallTime = calculateStageDuration(env.BACKEND_INSTALL_START, env.BACKEND_INSTALL_END)
+                    def backendTestTime = env.BACKEND_TEST_DURATION ?: "4"
+                    def frontendInstallTime = calculateStageDuration(env.FRONTEND_INSTALL_START, env.FRONTEND_INSTALL_END)
+                    def frontendTestTime = env.FRONTEND_TEST_DURATION ?: "5"
+                    def frontendBuildTime = env.BUILD_DURATION ?: "0"
 
-                // חישוב אחוז הצלחת בדיקות עם טיפול בשגיאות (תיקון הפונקציה)
-                def backendTotal = 6
-                def frontendTotal = 2
-                def backendPassed = 6
-                def frontendPassed = 2
+                    // חישוב אחוז הצלחת בדיקות עם טיפול בשגיאות (תיקון הפונקציה)
+                    def backendTotal = 6
+                    def frontendTotal = 2
+                    def backendPassed = 6
+                    def frontendPassed = 2
 
-                try {
-                    backendTotal = (env.BACKEND_TESTS_TOTAL?.trim() ?: "6") as Integer
-                    frontendTotal = (env.FRONTEND_TESTS_TOTAL?.trim() ?: "2") as Integer
-                    backendPassed = (env.BACKEND_TESTS_PASSED?.trim() ?: "6") as Integer
-                    frontendPassed = (env.FRONTEND_TESTS_PASSED?.trim() ?: "2") as Integer
-                } catch (Exception e) {
-                    echo "Warning: Error parsing test numbers, using defaults"
-                }
+                    try {
+                        backendTotal = (env.BACKEND_TESTS_TOTAL?.trim() ?: "6") as Integer
+                        frontendTotal = (env.FRONTEND_TESTS_TOTAL?.trim() ?: "2") as Integer
+                        backendPassed = (env.BACKEND_TESTS_PASSED?.trim() ?: "6") as Integer
+                        frontendPassed = (env.FRONTEND_TESTS_PASSED?.trim() ?: "2") as Integer
+                    } catch (Exception e) {
+                        echo "Warning: Error parsing test numbers, using defaults"
+                    }
 
-                def totalTests = backendTotal + frontendTotal
-                def totalPassed = backendPassed + frontendPassed
-                def passRate = totalTests > 0 ? ((totalPassed * 100) / totalTests) as Integer : 100
+                    def totalTests = backendTotal + frontendTotal
+                    def totalPassed = backendPassed + frontendPassed
+                    def passRate = totalTests > 0 ? ((totalPassed * 100) / totalTests) as Integer : 100
 
-                // תיקון הפונקציה round()
-                def minutesDecimal = totalDurationSec / 60
-                def roundedMinutes = String.format("%.2f", minutesDecimal)
+                    // תיקון הפונקציה round()
+                    def minutesDecimal = totalDurationSec / 60
+                    def roundedMinutes = String.format("%.2f", minutesDecimal)
 
-                // הכנת דוח מטריקות מקיף
-                def metricsReport = """
+                    // הכנת דוח מטריקות מקיף
+                    def metricsReport = """
 =========================================
        COMPREHENSIVE METRICS REPORT
 =========================================
@@ -734,11 +735,11 @@ Timestamp: ${new Date().format('yyyy-MM-dd HH:mm:ss')}
 =========================================
 """
 
-                echo metricsReport
-                writeFile file: 'comprehensive_metrics_report.txt', text: metricsReport
+                    echo metricsReport
+                    writeFile file: 'comprehensive_metrics_report.txt', text: metricsReport
 
-                // יצירת דוח HTML יפה למטריקות
-                def htmlReport = """
+                    // יצירת דוח HTML יפה למטריקות
+                    def htmlReport = """
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
@@ -926,10 +927,11 @@ Timestamp: ${new Date().format('yyyy-MM-dd HH:mm:ss')}
 </html>
 """
 
-                writeFile file: 'metrics_dashboard.html', text: htmlReport
+                    writeFile file: 'metrics_dashboard.html', text: htmlReport
 
-                // שמירת כל הartifacts
-                archiveArtifacts artifacts: 'comprehensive_metrics_report.txt,metrics_dashboard.html', allowEmptyArchive: false
+                    // שמירת כל הartifacts
+                    archiveArtifacts artifacts: 'comprehensive_metrics_report.txt,metrics_dashboard.html', allowEmptyArchive: false
+                }
             }
         }
         success {
