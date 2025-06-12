@@ -9,7 +9,9 @@ import AddRestaurantPage from './pages/AddRestaurantPage';
 import DetectRestaurant from './pages/DetectRestaurant';
 import PendingRestaurantsPage from './pages/PendingRestaurantsPage';
 import SavedRestaurants from './pages/SavedRestaurants';
-import UserPreferences from './pages/UserPreferences'; // 🆕 קומפוננט חדש
+import UserPreferences from './pages/UserPreferences';
+import WriteReview from './pages/WriteReview';
+import MyReviews from './pages/MyReviews';
 
 function App() {
   return (
@@ -25,8 +27,9 @@ function App() {
         <Route path="/detect" element={<DetectRestaurant />} />
         <Route path="/pending" element={<PendingRestaurantsPage />} />
         <Route path="/saved" element={<SavedRestaurants />} />
-        {/* 🆕 נתיב חדש להעדפות */}
         <Route path="/preferences" element={<UserPreferences />} />
+        <Route path="/write-review" element={<WriteReview />} />
+        <Route path="/my-reviews" element={<MyReviews />} />
       </Routes>
     </Router>
   );

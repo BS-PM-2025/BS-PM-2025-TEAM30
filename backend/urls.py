@@ -13,4 +13,5 @@ urlpatterns = [
     path('api/visit/remove/', remove_visit),
     # Include the restaurants urls at the api/ level
     path('api/', include('backend.restaurants.urls')),
+    path('api/reviews/', include('backend.reviews.urls')),
 ]

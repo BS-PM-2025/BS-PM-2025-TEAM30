@@ -484,13 +484,21 @@
 }
 
 .transport-toggle-button {
-  background-color: #2e7d32;
+  background: linear-gradient(135deg, #4caf50, #45a049);
   color: white;
   border: none;
-  border-radius: 20px;
-  padding: 8px 14px;
-  margin-right: 10px;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: bold;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.transport-toggle-button:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
 }
 
 .transport-options-panel {
@@ -541,4 +549,22 @@
 }
 .transport-link:hover {
   text-decoration: underline;
+}
+
+.review-button {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.review-button:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
 }

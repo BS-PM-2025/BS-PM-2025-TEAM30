@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useLoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api';
 import './FullNavigationMap.css';
+import ReviewForm from '../ReviewForm/ReviewForm';
 
 const libraries = ['places'];
 
@@ -26,9 +27,8 @@ const FullNavigationMap = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [routeInfo, setRouteInfo] = useState(null);
-
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const mapRef = useRef(null);
-  // 🆕 תחבורה
   const [showTransportOptions, setShowTransportOptions] = useState(false);
   const transportOptions = [
     {
@@ -57,6 +57,20 @@ const FullNavigationMap = ({
     },
 
   ];
+      const openReviewForm = () => {
+      const userEmail = localStorage.getItem('userEmail');
+      if (!userEmail) {
+        alert('נדרש להתחבר כדי לכתוב ביקורת');
+        return;
+      }
+      setShowReviewForm(true);
+    };
+
+    const handleReviewSubmitted = (newReview) => {
+      console.log('ביקורת חדשה נוספה:', newReview);
+      setShowReviewForm(false);
+    };
+
   // קבלת הוראות נסיעה מפורטות מגוגל
   useEffect(() => {
     if (!isLoaded || !origin || !destination) return;
@@ -208,6 +222,13 @@ const FullNavigationMap = ({
           <button onClick={openGoogleMapsNavigation} className="start-navigation-btn">
             🚗 התחל ניווט בגוגל מפות
           </button>
+                  <button
+          onClick={openReviewForm}
+          className="review-button"
+          title="כתוב ביקורת על המסעדה"
+        >
+          ✍️ כתוב ביקורת
+        </button>
           <button onClick={onClose} className="close-nav-btn">✕</button>
         </div>
       </div>
@@ -238,6 +259,17 @@ const FullNavigationMap = ({
             </li>
           </ul>
         </div>
+      )}
+      {showReviewForm && (
+        <ReviewForm
+          restaurant={{
+            name: restaurantName,
+            lat: destination.lat,
+            lng: destination.lng
+          }}
+          onClose={() => setShowReviewForm(false)}
+          onSubmitSuccess={handleReviewSubmitted}
+        />
       )}
       {/* תוכן ראשי - צד אל צד */}
       <div className="navigation-content">

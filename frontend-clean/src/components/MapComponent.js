@@ -5,7 +5,7 @@ import { GoogleMap, useLoadScript, Marker, Circle } from '@react-google-maps/api
 import SearchSidebar from './SearchSidebar';
 import FullNavigationMap from './FullNavigationMap/FullNavigationMap';
 import axios from 'axios';
-
+import ReviewsDisplay from './ReviewsDisplay/ReviewsDisplay';
 
 const libraries = ['places'];
 const mapContainerStyle = {
@@ -114,6 +114,9 @@ const MapComponent = () => {
   const [recommendedRestaurant, setRecommendedRestaurant] = useState(null);
   const [showRecommendation, setShowRecommendation] = useState(true);
   const [expandedCards, setExpandedCards] = useState({});
+  const [reviewsData, setReviewsData] = useState({});
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [selectedRestaurantForReviews, setSelectedRestaurantForReviews] = useState(null);
 
   // 🆕 מצב הוראות הנסיעה
   const [showDirectionsModal, setShowDirectionsModal] = useState(false);
@@ -202,6 +205,35 @@ const loadSmartRecommendations = async () => {
   }
 };
 
+const fetchRestaurantReviews = async (restaurant) => {
+  try {
+    const params = new URLSearchParams({
+      restaurant_name: restaurant.name,
+      restaurant_lat: restaurant.lat.toString(),
+      restaurant_lng: restaurant.lng.toString()
+    });
+
+    const response = await fetch(`http://localhost:8000/api/reviews/restaurant/?${params}`);
+    const data = await response.json();
+
+    if (response.ok) {
+      setReviewsData(prev => ({
+        ...prev,
+        [restaurant.name]: data
+      }));
+    }
+  } catch (err) {
+    console.error('שגיאה בטעינת ביקורות:', err);
+  }
+};
+const openReviewsModal = (restaurant) => {
+  setSelectedRestaurantForReviews(restaurant);
+  setShowReviewsModal(true);
+
+  if (!reviewsData[restaurant.name]) {
+    fetchRestaurantReviews(restaurant);
+  }
+};
 // עדכון לפונקציית filterByUserPreferences ב-MapComponent.js
 
 const filterByUserPreferences = (places) => {
@@ -356,6 +388,22 @@ const filterByUserPreferences = (places) => {
     return { percentage, level };
   };
 
+  const openWriteReviewPage = (restaurant) => {
+    const userEmail = localStorage.getItem('userEmail');
+    if (!userEmail) {
+      setShowLoginMessage(true);
+      return;
+    }
+
+    const params = new URLSearchParams({
+      name: encodeURIComponent(restaurant.name),
+      lat: restaurant.lat.toString(),
+      lng: restaurant.lng.toString()
+    });
+
+    window.location.href = `/write-review?${params.toString()}`;
+  };
+
   const toggleCardExpansion = (placeName) => {
     setExpandedCards(prev => ({
       ...prev,
@@ -441,6 +489,9 @@ useEffect(() => {
           }));
         });
       }
+      if (!reviewsData[place.name]) {
+      fetchRestaurantReviews(place);
+       }
     });
   }, [places]);
 useEffect(() => {
@@ -519,6 +570,8 @@ const getDefaultRestaurantImage = () => {
     </svg>
   `);
 };
+
+
   const fetchPlaces = async () => {
 
     console.log('🚀 fetchPlaces נקראה עם הפרמטרים הבאים:');
@@ -836,6 +889,9 @@ const getDefaultRestaurantImage = () => {
     <button className="preferences-button" onClick={() => window.location.href = '/preferences'}>
       ⚙️ העדפות
     </button>
+    <button className="reviews-button" onClick={() => window.location.href = '/my-reviews'}>
+      📝 הביקורות שלי
+    </button>
     <button className="login-button"  onClick={() => {
             localStorage.removeItem('userEmail');
             setIsLoggedIn(false);
@@ -1054,6 +1110,41 @@ const getDefaultRestaurantImage = () => {
                             <img src={place.icon} alt="icon" className="place-type-icon" />
                           )}
                         </div>
+                        {/* 🆕 הצגת מספר ביקורות */}
+                        <div className="reviews-info-bar">
+                          <div className="reviews-count-display">
+                            <button
+                              onClick={() => openReviewsModal(place)}
+                              className="reviews-count-btn"
+                              title="צפה בכל הביקורות"
+                            >
+                              <span className="reviews-icon">📝</span>
+                              <span className="reviews-text">
+                                {reviewsData[place.name] ? (
+                                  <>
+                                    {reviewsData[place.name].total_reviews} ביקורות מהאתר
+                                    {reviewsData[place.name].average_rating > 0 && (
+                                      <span className="avg-rating">
+                                        ({reviewsData[place.name].average_rating}⭐)
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  'טוען ביקורות...'
+                                )}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                        {showReviewsModal && selectedRestaurantForReviews && (
+                          <ReviewsDisplay
+                            restaurant={selectedRestaurantForReviews}
+                            onClose={() => {
+                              setShowReviewsModal(false);
+                              setSelectedRestaurantForReviews(null);
+                            }}
+                          />
+                        )}
 
                         {/* כפתורי פעולה */}
                         <div className="card-actions">
@@ -1072,6 +1163,13 @@ const getDefaultRestaurantImage = () => {
                               🍽️ ביקרתי כאן
                             </button>
                           )}
+                            <button
+                              onClick={() => openWriteReviewPage(place)}
+                              className="write-review-btn"
+                              title="כתוב ביקורת על המסעדה"
+                              >
+                                ✍️ כתוב ביקורת
+                            </button>
 
                           {/* 🆕 כפתור ניווט מפורט */}
                           <button
