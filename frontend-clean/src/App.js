@@ -13,7 +13,8 @@ import UserPreferences from './pages/UserPreferences';
 import WriteReview from './pages/WriteReview';
 import MyReviews from './pages/MyReviews';
 import AdminDashboard from './pages/AdminDashboard';
-import StatisticsDashboard from './pages/StatisticsDashboard';
+import SystemLog from './pages/SystemLog';
+import BroadcastMessage from './pages/BroadcastMessage';
 
 function App() {
   return (
@@ -33,7 +34,8 @@ function App() {
         <Route path="/write-review" element={<WriteReview />} />
         <Route path="/my-reviews" element={<MyReviews />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/statistics" element={<StatisticsDashboard />} />
+<Route path="/system-log" element={<SystemLog />} />
+<Route path="/broadcast" element={<BroadcastMessage />} />
 
       </Routes>
     </Router>

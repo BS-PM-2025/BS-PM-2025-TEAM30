@@ -1,0 +1,59 @@
+.system-log-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+  direction: rtl;
+  font-family: 'Heebo', sans-serif;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.log-list {
+  list-style: none;
+  padding: 0;
+}
+
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #f1f1f1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.log-item .log-icon {
+  font-size: 24px;
+  margin-left: 15px;
+}
+
+.log-content {
+  flex: 1;
+}
+
+.log-message {
+  margin: 0;
+  font-weight: bold;
+}
+
+.log-time {
+  font-size: 12px;
+  color: #666;
+}
+
+/* צבעים לפי סוג */
+.log-item.info {
+  border-right: 5px solid #2196F3;
+}
+
+.log-item.warning {
+  border-right: 5px solid #FF9800;
+}
+
+.log-item.error {
+  border-right: 5px solid #F44336;
+}

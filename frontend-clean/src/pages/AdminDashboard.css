@@ -93,3 +93,38 @@
   color: #c62828;
   font-size: 16px;
 }
+.stats-modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 30px;
+  overflow-y: auto;
+  direction: rtl;
+}
+
+.stats-content h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.stat-section {
+  margin-bottom: 40px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: crimson;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+}

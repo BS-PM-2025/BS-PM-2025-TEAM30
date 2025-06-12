@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './AdminDashboard.css';
-import StatisticsDashboard from './StatisticsDashboard';
+import SystemLog from './SystemLog';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
@@ -18,7 +18,7 @@ const AdminDashboard = () => {
   }
 
   if (showStats) {
-    return <StatisticsDashboard onClose={() => setShowStats(false)} />;
+    return <SystemLog onClose={() => setShowStats(false)} />;
   }
 
   return (
@@ -29,17 +29,23 @@ const AdminDashboard = () => {
       </div>
 
       <div className="admin-dashboard-sections">
-        <div className="admin-card" onClick={() => window.location.href = '/docs.djangoproject.com/en/5.2/ref/contrib/admin/'}>
+        <div className="admin-card" onClick={() => window.location.href = 'https://docs.djangoproject.com/en/5.2/ref/contrib/admin/'}>
           <span className="admin-icon">🗂️</span>
           <h3>כניסה ל-Django Admin</h3>
           <p>ניהול ביקורות, משתמשים ותוכן.</p>
         </div>
 
-        {/*<div className="admin-card" onClick={() => setShowStats(true)}>*/}
-        {/*  <span className="admin-icon">📊</span>*/}
-        {/*  <h3>סטטיסטיקות</h3>*/}
-        {/*  <p>מעקב אחרי פעילות המשתמשים.</p>*/}
-        {/*</div>*/}
+        <div className="admin-card" onClick={() => window.location.href = '/system-log'}>
+  <span className="admin-icon">📘</span>
+  <h3>יומן מערכת</h3>
+  <p>סקירת פעולות ובדיקת תקלות.</p>
+</div>
+<div className="admin-card" onClick={() => window.location.href = '/broadcast'}>
+  <span className="admin-icon">📢</span>
+  <h3>הודעה כללית</h3>
+  <p>שליחת הודעה לכל המשתמשים באפליקציה.</p>
+</div>
+
 
         <div className="admin-card" onClick={() => window.location.href = '/my-reviews'}>
           <span className="admin-icon">💬</span>
