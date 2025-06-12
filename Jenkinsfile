@@ -549,7 +549,9 @@ EOF
                     def backendCoverageStr = env.BACKEND_COVERAGE?.replace('%', '') ?: "45"
                     def backendCoverage = 45
                     try {
-                        backendCoverage = Float.parseFloat(backendCoverageStr.trim())
+                        // תיקון פונקציית parseFloat
+                        def coverageValue = backendCoverageStr.trim()
+                        backendCoverage = coverageValue as Integer
                     } catch (Exception e) {
                         backendCoverage = 45
                     }
@@ -558,14 +560,14 @@ EOF
 
                     def backendTestsFailed = 0
                     try {
-                        backendTestsFailed = Integer.parseInt(env.BACKEND_TESTS_FAILED?.trim() ?: "0")
+                        backendTestsFailed = (env.BACKEND_TESTS_FAILED?.trim() ?: "0") as Integer
                     } catch (Exception e) {
                         backendTestsFailed = 0
                     }
 
                     def frontendTestsFailed = 0
                     try {
-                        frontendTestsFailed = Integer.parseInt(env.FRONTEND_TESTS_FAILED?.trim() ?: "0")
+                        frontendTestsFailed = (env.FRONTEND_TESTS_FAILED?.trim() ?: "0") as Integer
                     } catch (Exception e) {
                         frontendTestsFailed = 0
                     }
@@ -632,17 +634,17 @@ EOF
                 def frontendTestTime = env.FRONTEND_TEST_DURATION ?: "5"
                 def frontendBuildTime = env.BUILD_DURATION ?: "0"
 
-                // חישוב אחוז הצלחת בדיקות עם טיפול בשגיאות
+                // חישוב אחוז הצלחת בדיקות עם טיפול בשגיאות (תיקון הפונקציה)
                 def backendTotal = 6
                 def frontendTotal = 2
                 def backendPassed = 6
                 def frontendPassed = 2
 
                 try {
-                    backendTotal = Integer.parseInt(env.BACKEND_TESTS_TOTAL?.trim() ?: "6")
-                    frontendTotal = Integer.parseInt(env.FRONTEND_TESTS_TOTAL?.trim() ?: "2")
-                    backendPassed = Integer.parseInt(env.BACKEND_TESTS_PASSED?.trim() ?: "6")
-                    frontendPassed = Integer.parseInt(env.FRONTEND_TESTS_PASSED?.trim() ?: "2")
+                    backendTotal = (env.BACKEND_TESTS_TOTAL?.trim() ?: "6") as Integer
+                    frontendTotal = (env.FRONTEND_TESTS_TOTAL?.trim() ?: "2") as Integer
+                    backendPassed = (env.BACKEND_TESTS_PASSED?.trim() ?: "6") as Integer
+                    frontendPassed = (env.FRONTEND_TESTS_PASSED?.trim() ?: "2") as Integer
                 } catch (Exception e) {
                     echo "Warning: Error parsing test numbers, using defaults"
                 }
@@ -650,6 +652,10 @@ EOF
                 def totalTests = backendTotal + frontendTotal
                 def totalPassed = backendPassed + frontendPassed
                 def passRate = totalTests > 0 ? ((totalPassed * 100) / totalTests) as Integer : 100
+
+                // תיקון הפונקציה round()
+                def minutesDecimal = totalDurationSec / 60
+                def roundedMinutes = String.format("%.2f", minutesDecimal)
 
                 // הכנת דוח מטריקות מקיף
                 def metricsReport = """
@@ -661,7 +667,7 @@ EOF
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Status: ${currentBuild.result ?: 'SUCCESS'}
 Build Number: #${env.BUILD_NUMBER}
-Total Duration: ${totalDurationSec} seconds (${(totalDurationSec/60).round(2)} minutes)
+Total Duration: ${totalDurationSec} seconds (${roundedMinutes} minutes)
 Quality Gate: ${env.QUALITY_GATE_PASSED == 'true' ? '✅ PASSED' : '❌ FAILED'}
 ${env.QUALITY_ISSUES ? 'Quality Issues: ' + env.QUALITY_ISSUES : 'No quality issues detected'}
 
@@ -823,19 +829,6 @@ Timestamp: ${new Date().format('yyyy-MM-dd HH:mm:ss')}
             color: #7f8c8d;
             border-top: 1px solid #bdc3c7;
         }
-        .progress-bar {
-            background: #ecf0f1;
-            border-radius: 10px;
-            height: 8px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #27ae60, #2ecc71);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
     </style>
 </head>
 <body>
@@ -861,7 +854,7 @@ Timestamp: ${new Date().format('yyyy-MM-dd HH:mm:ss')}
                 <h3><span class="icon">⏱️</span>זמן Pipeline</h3>
                 <div class="metric-value">${totalDurationSec} שניות</div>
                 <div class="metric-details">
-                    ${(totalDurationSec/60).round(2)} דקות סה"כ<br>
+                    ${roundedMinutes} דקות סה"כ<br>
                     זמן Lead Time מcommit עד deployment-ready
                 </div>
             </div>
