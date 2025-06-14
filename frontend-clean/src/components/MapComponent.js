@@ -20,18 +20,18 @@ const isAdmin = () => {
 const fetchPopularData = async (placeName, callback) => {
    // 👇 השבתת Outscraper זמנית כדי לא לבזבז קרדיט
   //לא למחוק שמתי את זה בנתיים בהערה כדי שלא ייגמרו השימושים !!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // try {
-  //   const res = await fetch(`http://localhost:8000/api/load/?name=${encodeURIComponent(placeName)}`);
-  //   const data = await res.json();
-  //   if (res.ok) {
-  //     callback({ ...data, is_fake: false }); // נתון אמיתי
-  //   } else {
-  //     callback({ popular_times: generateBackupPopularity() });
-  //   }
-  // } catch (err) {
-  //   console.error("שגיאה בשליפת עומס:", err);
-  //   callback({ popular_times: generateBackupPopularity() }); //
-  // }
+  try {
+    const res = await fetch(`http://localhost:8000/api/load/?name=${encodeURIComponent(placeName)}`);
+    const data = await res.json();
+    if (res.ok) {
+      callback({ ...data, is_fake: false }); // נתון אמיתי
+    } else {
+      callback({ popular_times: generateBackupPopularity() });
+    }
+  } catch (err) {
+    console.error("שגיאה בשליפת עומס:", err);
+    callback({ popular_times: generateBackupPopularity() }); //
+  }
 
   //  שימוש זמני בנתונים מדומים
   callback({ popular_times: generateBackupPopularity() });

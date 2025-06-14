@@ -246,6 +246,7 @@
   align-items: center;
   gap: 8px;
   font-family: 'Heebo', sans-serif;
+  color: #495057; /* 👈 הוסף את השורה הזו */
 }
 
 .food-type-btn:hover {
@@ -537,8 +538,8 @@
   align-items: center;
   gap: 8px;
   position: relative;
+  color: #495057; /* 👈 הוסף את השורה הזו */
 }
-
 .meal-tab:hover {
   border-color: #667eea;
   background: #f0f7ff;
